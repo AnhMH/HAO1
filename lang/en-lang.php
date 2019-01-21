@@ -7,6 +7,20 @@ FBMPGP v3
 */
  
 $lang = array();
+//3.6
+$lang['Multi'] = 'Multi';
+$lang['Multi Images Required'] = 'At least 2 images required';
+//3.5
+$lang['Click Here'] = 'Click Here';
+$lang['Grant Permissions'] = 'Grant Permissions';
+$lang['Keep Window'] = 'Keep the window/tab open';
+$lang['Drag this link'] = 'Drag this link/text to bookmarks bar to create a bookmarklet';
+$lang['Click Bookmarklet'] = 'Click the bookmarklet on that window/tab to get access token';
+$lang['Copy Token'] = 'Copy the URL in address bar quickly as soon as success message appears';
+$lang['Step 4'] = 'Step 4';
+$lang['Step 5'] = 'Step 5';
+//3.3
+$lang['Shorten Links'] = 'Shorten All Links';
 //3.1
 $lang['No Logs'] = 'No logs yet. When users publish posts, logs will appear here.';
 $lang['Post Logs'] = 'Post Logs';

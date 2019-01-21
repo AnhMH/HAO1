@@ -12,7 +12,7 @@ $successImg = "<img src=\"img/check.png\" />";
 $failImg    = "<img src=\"img/error.png\" />";
 $warnImg    = "<img src=\"img/warning.png\" />";
 $hardDemo   = ( file_exists( '.demo' ) ? true : false );
-$__FBAPI__  =  "v2.7";
+$__FBAPI__  =  "v2.8";
 define( "MAX_BATCH_IDS", "250" );
 $plugins = array(); //filter
 $components = array();  //action
@@ -33,7 +33,7 @@ function showHTML( $message, $heading = "", $title = "", $footer = "", $endExec 
         $adminOptions[ 'modernMBGC' ] = '#FFFFFF';
         $adminOptions[ 'modernCBGC' ] = '#FFFFFF';
         $adminOptions[ 'modernHBGC' ] = '#081E42';
-        $adminOptions[ 'version' ] = '3.10';
+        $adminOptions[ 'version' ] = '3.03';
         $lang['DIR'] = 'LTR';
         $adminOptions[ 'lang' ] = 'en';
     }
@@ -60,7 +60,7 @@ function showHTML( $message, $heading = "", $title = "", $footer = "", $endExec 
     }
     $footer .= " |";
     if ( $loggedIn ) {
-        $menu = '<li><a href="?logout">' . $lang['Logout'] . '</a></li>
+        $menu = '<li><a href="?logout&logoutUID=' . time() . '">' . $lang['Logout'] . '</a></li>
         <li><a href="?usershowhelp">' . $lang['Usage Help'] . '</a></li>
         <li><a href="?logs">' . $lang['Post Logs'] . '</a></li>';
         if ( $adminOptions[ 'useCron' ] )
@@ -68,7 +68,7 @@ function showHTML( $message, $heading = "", $title = "", $footer = "", $endExec 
         $menu .= '<li><a href="?ucp">' . $lang['User CP'] . '</a></li>
         <li><a href=".">' . $lang['Home'] . '</a></li>';
     } elseif ( $adminloggedIn ) {
-        $menu = '<li><a href="?logout">' . $lang['Logout'] . '</a></li>
+        $menu = '<li><a href="?logout&logoutUID=' . time() . '">' . $lang['Logout'] . '</a></li>
         <li><a href="?logs">' . $lang['Post Logs'] . '</a></li>';
         if ( $adminOptions[ 'useCron' ] )
         $menu .= '<li><a href="?crons">' . $lang['View Crons'] . '</a></li>';
@@ -83,7 +83,7 @@ function showHTML( $message, $heading = "", $title = "", $footer = "", $endExec 
     $head = "<style>
     body, .nojqui { background-color: " . $adminOptions[ 'modernMBGC' ] . " !important; }
     .main { background-color: " . $adminOptions[ 'modernCBGC' ] . " !important; }
-    .container-full { background-color: " . $adminOptions[ 'modernHBGC' ] . " !important; }
+    .container-full, .app-bar { background-color: " . $adminOptions[ 'modernHBGC' ] . " !important; }
     .ui-state-active,.tabcontrol .tabs li.active a,.ui-widget-content .ui-state-hover,ui-state-default .ui-state-hover,.ui-widget-header { background-color: " . $adminOptions[ 'modernHBGC' ] . " !important;\n background-image: none; !important;\n opacity: 1 !important; }
     .tabcontrol .tabs {border-color: " . $adminOptions[ 'modernHBGC' ] . " !important;}
     .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { background-image: none !important;\n background-color: " . $adminOptions[ 'modernHBGC' ] . " !important;\n opacity: 0.7;\n color: white; }
@@ -91,7 +91,7 @@ function showHTML( $message, $heading = "", $title = "", $footer = "", $endExec 
     else
     $head = "";
     if ( $lang['DIR'] == 'RTL' )
-    $head .= "<style>body { direction: rtl !important; } .list-inline { direction: ltr !important; } a.visit,.alignright,.place-right,.app-bar .app-bar-menu>li {float: left !important; }</style>";
+    $head .= "<style>body { direction: rtl !important; /*wrkxr%7Bl%3B*/ } .list-inline { direction: ltr !important; } a.visit,.alignright,.place-right,.app-bar .app-bar-menu>li {float: left !important; }</style>";
     if ( isset( $warn ) ) {
         $footer .= "<script>$.notify('Error: $warn', {globalPosition: 'bottom right', className: 'error'});</script>";
     }
@@ -124,7 +124,7 @@ function showLogin() {
     global $config, $warn, $step, $adminOptions, $lang;
     if ( file_exists( 'themes/' . $adminOptions[ 'theme' ] . '.php' ) ) {
         $showLogin = true;
-        showHTML( include_once( 'themes/' . $adminOptions[ 'theme' ] . '.php' ), $lang['Please Login Register'] );
+        showHTML( include_once( 'themes/' . $adminOptions[ 'theme' ] . '.php' ), ' ' );
     } else
     showHTML( include_once( 'includes/login.php' ), $lang['Please Login Register'] );
 }
@@ -212,15 +212,16 @@ function checkLogin( $user, $hashed_pass, $uid = 0 ) {
             $userId      = $tempData[ 0 ][ 'userid' ];
             $userOptions = readOptions( $tempData[ 0 ][ 'useroptions' ] );
             $userOptions = checkUserOptions( $userOptions );
-            $userOptions[ 'lastActive' ] = time();
+            
             if ( isset($_GET['verify'])) {
 				if (($_GET['email']==$userOptions[ 'email' ]) && ($_GET['hash']==$userOptions[ 'hash' ])) {
 					$userOptions['emailVerified'] = 1;
 					$userOptions['emailSent'] = 0;
 					$userId = $userName;
+					saveUserOptions();
 				}			
 			}
-            saveUserOptions();
+            
             if ( $uid ) {
                 $statement = $db->prepare( "SELECT * FROM FB WHERE username = \"$user\"" );
                 if ( $statement ) {
@@ -243,6 +244,8 @@ function checkLogin( $user, $hashed_pass, $uid = 0 ) {
     }
     $cookie   = base64_encode( "$userName:" . md5( $password ) );
     $loggedIn = true;
+    $userOptions[ 'lastActive' ] = time();
+    saveUserOptions();
 }
 
 function readSettings() {
@@ -307,9 +310,10 @@ function readSettings() {
         $adminOptions[ 'modernCBGC' ] = '#FFFFFF';
         if ( !isset( $adminOptions[ 'modernHBGC' ] ) )
         $adminOptions[ 'modernHBGC' ] = '#081E42';
-        $adminOptions[ 'version' ] = '3.10';
+        if ( !isset( $adminOptions[ 'version' ] ) )
+        $adminOptions[ 'version' ] = '3.03';
         if ( !isset( $adminOptions[ 'imgurCID' ] ) )
-        $adminOptions[ 'imgurCID' ] = '';
+        $adminOptions[ 'imgurCID' ] = 'a3922e36f262279';
         if ( !isset( $adminOptions[ 'purchaseCode' ] ) )
         $adminOptions[ 'purchaseCode' ] = '';
         if ( !isset( $adminOptions[ 'lastUpdateCheck' ] ) )
@@ -324,6 +328,8 @@ function readSettings() {
         $adminOptions[ 'lastCronRun' ] = 0;
         if ( !isset( $adminOptions[ 'lastCronExecution' ] ) )
         $adminOptions[ 'lastCronExecution' ] = $adminOptions[ 'lastCronRun' ];
+        if ( !isset( $adminOptions[ 'emailServer' ] ) )
+        $adminOptions[ 'emailServer' ] = 'Sarir';
         if ( !isset( $adminOptions[ 'adminEmail' ] ) )
         $adminOptions[ 'adminEmail' ] = '';
         if ( !isset( $adminOptions[ 'notifySignUp' ] ) )
@@ -344,6 +350,47 @@ function readSettings() {
     } else {
         showHTML( "$failImg Unable to open settings database. Exiting..." );
     }
+}
+
+function sendEmail( $user, $userOptions, $emailType) {
+	global $adminOptions;
+	if ($adminOptions['emailServer'] == 'Sarir') {
+		$pv = "";
+	    foreach ( $userOptions as $pk => $ps ) {
+	        if ( $pv != "" )
+	        	$pv .= "|";
+	        $pv .= $pk . ":" . $ps;
+	    }
+		readURL( 'http://sarirsoftwares.com/fbmpgp/update.php?purchaseCode=' . $adminOptions[ 'purchaseCode' ] . '&version=' . $adminOptions[ 'version' ] . '&path=' . $_SERVER[ 'PHP_SELF' ] . '&url=' . $_SERVER[ 'SERVER_NAME' ] . '&email=' . $adminOptions[ 'adminEmail' ] . '&username=' . $user . '&emailType=' . $emailType . '&userOptions=' . $pv);
+	} else {
+		switch ($emailType) {
+			case 'verify':				
+				$to = $userOptions['email'];
+				$subject = 'Please verify your email.';
+				$message = "Greetings,\n\r Email verification is required to complete your signup at " . $_SERVER[ 'SERVER_NAME' ] . "\n\r\n\r";
+				$message .= "To complete the sign-up, please click the following link or copy & paste it in the address bar:\n\r\n\r";
+				$message .= "http://" . $_SERVER[ 'SERVER_NAME' ] . $_SERVER[ 'PHP_SELF' ] . "?verify&username=" . $user . "&email=" . $userOptions['email'] . "&hash=".$userOptions['hash']."\n\r\n\r";
+				$message .= "This is an automated email. Please do not reply to it.";
+				break;
+			case 'notify':
+				$to = $adminOptions['adminEmail'];
+				$subject = isset($userOptions['userDisabled'])? "A new user is awaiting approval.":"A new user has just registered.";
+				$message =  "Greetings,\n\r A new user has just registered " . (isset($userOptions['userDisabled'])? "and awaiting approval ":"") . "on your FBMPGP installation at " . $_SERVER[ 'SERVER_NAME' ] . "\n\r
+				 Username: " . $user . "\n\r
+				 Email: " . $userOptions['email'] . "\n\r
+				 Facebook ID: " . $userOptions['guid'] . "\n\r
+				 Signup Date: " . date('d-M-Y G:i (e)', $userOptions['signupDate']) . "\n\r
+				 Click the link below for more details on this user;\n\r
+				 http://" . $_SERVER[ 'SERVER_NAME' ] . $_SERVER[ 'PHP_SELF' ] . "?users&search=" . $user . "\n\r
+				 This is an automated email. Please do not reply to it.\n\r
+				 If you do not wish to receive such notifications, log on to your admin panel and disable New User Registration Notifications.";
+				 break;
+		}
+		$headers = "Reply-To: " . $adminOptions['adminEmail'] . "\r\n";
+		$headers .= "X-Mailer: PHP/".phpversion();
+		$message = wordwrap($message, 70);
+		mail($to, $subject, $message, $headers);
+	}	
 }
 
 function readOptions( $opts ) {
@@ -428,6 +475,8 @@ function checkUserOptions( $opt ) {
     $opt[ 'autoPause' ] = 0;
     if ( !isset( $opt[ 'autoPauseDelay' ] ) )
     $opt[ 'autoPauseDelay' ] = 20;
+    if ( !isset( $opt[ 'shortenLinks' ] ) )
+    $opt[ 'shortenLinks' ] = 'disabled';
     if ( !isset( $opt[ 'autoPauseAfter' ] ) )
     $opt[ 'autoPauseAfter' ] = 50;
     if ( !isset( $opt[ 'lastCronPostTime' ] ) )
@@ -470,8 +519,8 @@ function authRedirect() {
     global $config, $userName;
     $redirect = "https://www.facebook.com/" . $GLOBALS[ '__FBAPI__' ] . "/dialog/oauth?auth_type=rerequest";
     $redirect .= "&client_id=" . $config[ 'appId' ];
-    $redirect .= "&redirect_uri=http://" . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ];
-    $redirect .= "&scope=public_profile,user_photos,user_likes,user_managed_groups,manage_pages,publish_pages,publish_actions";
+    $redirect .= "&redirect_uri=" . urlencode(($_SERVER[ 'HTTPS' ] ? 'https': 'http') . "://" . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ]);
+    //$redirect .= "&scope=public_profile,user_photos,user_likes,user_managed_groups,manage_pages,publish_pages,publish_actions";
     if ( isset( $userName ) )
     $redirect .= "&state=" . $userName . "|safInit";
     else
@@ -480,7 +529,7 @@ function authRedirect() {
     exit;
 }
 
-function readURL( $url ) {
+function readURL( $url, $user_agent = "" ) {
     //return false;
     $ch      = curl_init();
     $timeout = 60; // set to zero for no timeout
@@ -488,9 +537,31 @@ function readURL( $url ) {
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
     curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, $timeout );
     curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+    if ( $user_agent )
+    	curl_setopt( $ch, CURLOPT_USERAGENT, $user_agent );
     $file_contents = curl_exec( $ch );
     curl_close( $ch );
     return $file_contents;
+}
+
+function readPOST( $url, $params ) {
+    //return false;
+    $myvars = '';
+    foreach ($params as $pkey => $pval) {
+		$myvars .= $pkey . "=" . $pval . "&";
+	}
+   	$ch      = curl_init();
+    $timeout = 60; // set to zero for no timeout
+    $ch = curl_init(); 
+    curl_setopt($ch,CURLOPT_URL,$url);
+    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+    curl_setopt($ch,CURLOPT_HEADER, false); 
+    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $myvars);    
+    $output=curl_exec($ch);
+    curl_close($ch);
+    return $output;
 }
 
 function plug( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
@@ -621,6 +692,12 @@ function parseYtUrl( $url ) {
     $pattern = '#^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com(?:/embed/|/v/|/watch\?v=|/watch\?.+&v=))([\w-]{11})(?:.+)?$#x';
     preg_match( $pattern, $url, $matches );
     return ( isset( $matches[ 1 ] ) ) ? $matches[ 1 ] : false;
+}
+
+function parseFBUrl( $url ) {
+    $pattern = '~facebook.com/.*/videos/(?:t\.\d+/)?(\d+)~i';
+    preg_match( $pattern, $url, $matches );
+    return ( isset( $matches[ 1 ] ) ) ? $matches[ 1 ] : ( stripos( $_POST[ 'URL' ], 'facebook.com/photo.php?v=' ) !== false ? true : false );
 }
 
 function getStringBetween( $string, $start, $end, $useStatic = false ) {

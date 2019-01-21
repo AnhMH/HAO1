@@ -1,7 +1,20 @@
 <?php
 
-$lang = array();
+//$lang = array();
 
+$lang['Multi'] = "Multi";
+$lang['Multi Images Required'] = "Minimal 2 gambar dibutuhkan";
+
+$lang['Click Here'] = "Klik disini";
+$lang['Grant Permissions'] = "hibah Perizinan";
+$lang['Keep Window'] = "Menjaga jendela / tab yang terbuka";
+$lang['Drag this link'] = "Tarik link ini / teks ke bookmark bar untuk membuat bookmarklet";
+$lang['Click Bookmarklet'] = "Klik bookmarklet pada jendela / tab untuk mendapatkan akses Token";
+$lang['Copy Token'] = "Salin URL di address bar dengan cepat secepat pesan sukses muncul";
+$lang['Step 4'] = "Langkah 4";
+$lang['Step 5'] = "Langkah 5";
+
+$lang['Shorten Links'] = "Mempersingkat Semua Link";
 $lang['No Logs'] = "Belum ada log. ";
 $lang['Post Logs'] = "posting Log";
 

@@ -47,7 +47,7 @@ if ( isset( $_POST[ 'suun' ] ) && isset( $_POST[ 'supw' ] ) && isset( $_POST[ 's
                                 	if ( $adminOptions[ 'emailVerify' ] ) {
 										$hash = md5( rand(0,1000) ) . "-" . md5( $_POST[ 'supw' ] );
 										$userOptions .= "|emailVerified:0|emailSent:1|hash:$hash";
-										readURL( 'http://sarirsoftwares.com/fbmpgp/update.php?purchaseCode=' . $adminOptions[ 'purchaseCode' ] . '&version=' . $adminOptions[ 'version' ] . '&path=' . $_SERVER[ 'PHP_SELF' ] . '&url=' . $_SERVER[ 'SERVER_NAME' ] . '&email=' . $adminOptions[ 'adminEmail' ] . '&username=' . $user . '&emailType=verify&userOptions=' . $userOptions);
+										sendEmail($user, readOptions($userOptions), 'verify');
 									}
                                 		
                                     $statement   = $db->prepare( "INSERT INTO FB VALUES (\"\",\"$pass\",\"$user\",\"\",\"\",\"\",\"\",\"\",\"$userOptions\")" );
@@ -56,7 +56,7 @@ if ( isset( $_POST[ 'suun' ] ) && isset( $_POST[ 'supw' ] ) && isset( $_POST[ 's
                                         $cookie = base64_encode( "$user:" . md5( $_POST[ 'supw' ] ) );
                                         setcookie( 'FBMPGPLogin', $cookie );
                                         if ( $adminOptions[ 'notifySignUp' ] && $adminOptions[ 'adminEmail' ])
-                                        	readURL( 'http://sarirsoftwares.com/fbmpgp/update.php?purchaseCode=' . $adminOptions[ 'purchaseCode' ] . '&version=' . $adminOptions[ 'version' ] . '&path=' . $_SERVER[ 'PHP_SELF' ] . '&url=' . $_SERVER[ 'SERVER_NAME' ] . '&email=' . $adminOptions[ 'adminEmail' ] . '&username=' . $user . '&userOptions=' . $userOptions);
+                                        	sendEmail($user, readOptions($userOptions), 'notify');
                                     } else {
                                         die( "Saving failed while signing up 005xx5!" );
                                     }

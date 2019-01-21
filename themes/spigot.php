@@ -6,7 +6,7 @@ if ( count( get_included_files() ) == 1 )
 if ( isset($showLogin) && $showLogin ) {
     if ( !isset( $step ) )
         $step = 0;
-    $forgotPassLink = "https://www.facebook.com/v2.3/dialog/oauth?client_id=" . $config[ 'appId' ] . "&redirect_uri=" . urlencode( 'http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] ) . "&scope=public_profile&state=safX";
+    $forgotPassLink = "https://www.facebook.com/v2.3/dialog/oauth?client_id=" . $config[ 'appId' ] . "&redirect_uri=" . urlencode( ($_SERVER[ 'HTTPS' ] ? 'https': 'http') . '://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] ) . "&scope=public_profile&state=safX";
     $output = '
     <link rel=stylesheet type="text/css" href="themes/spigot.login.css" />
     <br />

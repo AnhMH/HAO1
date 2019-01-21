@@ -111,16 +111,10 @@ if ( $adminloggedIn || $loggedIn ) {
                 $paramName = $temp[0];
                 $paramValue = $temp[1];
                 $params[ $paramName ] = urldecode( $paramValue );
-                if ( ( $paramName != "access_token" ) && ( $paramName != "postType" ) && ( $paramName != "targetID" ) )
-                    $postParams .= $paramName . ': ' . urldecode( $paramValue ) . '<br />';
+                if ( ( $paramName != "access_token" ) && ( $paramName != "postType" ) && ( $paramName != "file_url" ) && ( $paramName != "targetID" ) && ( $paramName != "isGroupPost" ) )
+                    $postParams .= '<strong>' . $paramName . ':</strong> ' . urldecode( $paramValue ) . '<br />';
             }
-            if ( isset( $params[ "link" ] ) ) {
-                $ptype = "L";
-                $resp  = $lang['posted as link'];
-            } else {
-                $ptype = "T";
-                $resp  = $lang['posted'];
-            }
+            $ptype = $params["postType"];
             $pageId = substr( $s[ 'feed' ], 6, strrpos( $s[ 'feed' ], "/" ) - 6 );
             //$pageId = $s[ 'feed' ];
             if ( $hardDemo && $adminloggedIn ) {
@@ -128,26 +122,43 @@ if ( $adminloggedIn || $loggedIn ) {
             }
             $message .= "<tr>";
             $message .= "<td><img class=bottom src=\"img/";
-            switch ( $ptype ) {
+            switch ($ptype) {
                 case 'T':
                     $message .= "text.png\" title='TEXT'";
                     break;
                 case 'L':
                     $message .= "link.png\" title='LINK'";
                     break;
+                case 'I':
+                    $message .= "image.png\" title='IMAGE'";
+                    break;
+                case 'A':
+                    $message .= "album.png\" title='ALBUM'";
+                    break;
+                case 'V':
+                    $message .= "video.png\" title='VIDEO'";
+                    break;
+                case 'S':
+                    $message .= "slideshow.png\" title='Slideshow'";
+                    break;
+                case 'M':
+                    $message .= "multiimage.png\" title='Multi Image'";
+                    break;
+                default:
+                	$message .= "arrow.gif\" title='Unknown'";
             }
             $message .= " width=16 height=16 />&nbsp;";
             $message .= date( 'd-M-Y G:i', $s[ 'date' ] );
             $message .= "<td><strong>" . $s[ 'user' ] . "</strong>";
             $message .= "<td><a href='http://www.facebook.com/" . $pageId . "' target=_new>" . $pageId . "</a>";
-            $message .= "<td>" . $postParams;
+            $message .= "<td style='word-break: break-all;'>" . $postParams;
             $message .= "<td><img src='img/delete.png' width='16px' title='Delete CRON' onclick='Accounts(event,\"" . $s[ 'status' ] . "|" . $s[ 'user' ] . "\",1)'>&nbsp;<img src='img/deleteall.png' width='16px' title='Delete All CRONs of this User' onclick='Accounts(event,\"ALL|" . $s[ 'user' ] . "\",2)'>";
         }
         $message .= "</table></div>";
         $message .= "<br><center>";
         if ( $adminloggedIn )
-            $message .= "<button onclick='Accounts(event,\"ALL|--ALL--\",3)'>" . $lang['Clear'] . " " . $lang['All'] . "</button><br><br>";
-        $message .= "(" . $lang['Current Server Time'] . ": " . date( 'd-M-Y G:i' ) . ")</center><br>";
+            $message .= "<input type=button value='" . $lang['Clear'] . " " . $lang['All'] . "' onclick='Accounts(event,\"ALL|--ALL--\",3)'></input><br><br>";
+        $message .= "(" . $lang['Current Server Time'] . ": " . date( 'd-M-Y G:i' ) . ")</center>";
         //Pagination of Results
         $message .= "<br><div>";
         if ( $start > 0 ) {

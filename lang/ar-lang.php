@@ -1,7 +1,20 @@
 <?php
 
-$lang = array();
+//$lang = array();
 
+$lang['Multi'] = "متعدد";
+$lang['Multi Images Required'] = "مطلوب 2 صور على الأقل";
+
+$lang['Click Here'] = "انقر هنا";
+$lang['Grant Permissions'] = "منح الأذونات";
+$lang['Keep Window'] = "إبقاء النافذة / علامة التبويب مفتوحة";
+$lang['Drag this link'] = "اسحب هذا الرابط / النص إلى شريط الإشارات المرجعية لإنشاء بوكماركليت";
+$lang['Click Bookmarklet'] = "انقر على التطبيق المختصر في هذه النافذة / علامة التبويب للحصول على الرمز المميز للدخول";
+$lang['Copy Token'] = "انسخ عنوان ورل في شريط العناوين بسرعة فور ظهور رسالة النجاح";
+$lang['Step 4'] = "الخطوة 4";
+$lang['Step 5'] = "الخطوة 5";
+
+$lang['Shorten Links'] = "اختصار جميع الروابط";
 $lang['No Logs'] = "لا السجلات حتى الان. ";
 $lang['Post Logs'] = "آخر سجلات";
 

@@ -17,7 +17,9 @@ if ( ( $userOptions[ "delayHandling" ] == 0 ) || isset( $_POST[ 'delAcc' ] ) ) {
         foreach ( $pages as $key => $page ) {
             if ( $page != "" ) {
                 $p = explode( ":", $page );
-                if ( $p[ 0 ] == $pageID ) {
+                if ( ( $p[ 0 ] == $pageID ) || ( $_POST['pageid'] == "pages" ) || ( ( $p[ 1 ] == 'L' ) && ( $_POST['pageid'] == "likedpages" ) )) {
+                    if ( ( $p[ 1 ] == 'L' ) && ( $_POST['pageid'] == "pages" ) )
+                    	break;
                     if ( isset( $_POST[ 'delAcc' ] ) )
                         unset($pages[$key]);
                     if ( $p[ 1 ] == 'L' ) {
@@ -26,7 +28,10 @@ if ( ( $userOptions[ "delayHandling" ] == 0 ) || isset( $_POST[ 'delAcc' ] ) ) {
                         $isLikedPagePost = true;
                     } else
                     	$access_token = $p[ 3 ];
-                    break;
+                    if ( (  $_POST['pageid'] == "pages" ) || ( $_POST['pageid'] == "likedpages" ) )
+                    	continue;
+                    else
+                    	break;
                 }
             }
         }
@@ -52,7 +57,7 @@ if ( ( $userOptions[ "delayHandling" ] == 0 ) || isset( $_POST[ 'delAcc' ] ) ) {
             $pageData = urlencode(implode("\n",$pages));
             $groupData = urlencode(implode("\n",$groups));
             if ($db = new PDO('sqlite:'.$dbName.'-users.db')) {
-                if ($_POST['pageid'] == "pages") $pageData='';
+                //if ($_POST['pageid'] == "pages") $pageData='';
                 if ($_POST['pageid'] == "groups") $groupData='';
                 $statement = $db->prepare("UPDATE FB SET pagedata=\"$pageData\", groupdata=\"$groupData\" WHERE userid = \"$userId\"");
                 if ($statement) {
@@ -109,6 +114,8 @@ if ( $ptype == "I" ) {
     $postlink .= "photo.php?fbid=";
 } elseif ( $ptype == "A" ) {
     // Album Post
+    if ($isLikedPagePost)
+		die($failImg." Album Post cannot be made to Liked Pages!");
     if ( !isset( $_POST[ 'AlbumID' ] ) ) {
         if ( $_POST[ 'URL' ] == '' ) {
             die( $failImg . " " . $lang['No album'] );
@@ -164,6 +171,14 @@ if ( $ptype == "I" ) {
         die( $failImg . " " . $lang['No link'] );
     }
     $params[ "link" ] = $_POST[ 'URL' ];
+    if ( $userOptions[ 'shortenLinks' ] != 'disabled' ) {
+		if (strpos($params[ "link" ], 'http') !== 0) 
+			$params[ "link" ] = "http://" . $params[ "link" ];
+		if ( $userOptions[ 'shortenLinks' ] == 'klurl' )
+			$params[ "link" ] = readURL("https://klurl.nl/?action=api-add&url=".$params[ "link" ]);
+		elseif ( $userOptions[ 'shortenLinks' ] == 'urltv' )
+			$params[ "link" ] = readURL("http://urltv.nl/api.php?url=".$params[ "link" ]);
+	}
     if ( isset( $_POST[ 'Title' ] ) && ( $_POST[ 'Title' ] != '' ) )
         $params[ "name" ] = $_POST[ 'Title' ];
     if ( isset( $_POST[ 'Description' ] ) && ( $_POST[ 'Description' ] != '' ) )
@@ -194,6 +209,24 @@ if ( $ptype == "I" ) {
     $params[ "slideshow_spec" ] = "{\"images_urls\":[\"".implode("\",\"",$imgURLs)."\"],\"duration_ms\": 2500,\"transition_ms\": 300}";
     $feed                    = '/' . $GLOBALS[ '__FBAPI__' ] . '/' . $pageID . '/' . "videos";
     $postlink .= "photo.php?v=";
+} elseif ( $ptype == "M" ) {
+	// Multi Image Post
+	if ($isLikedPagePost)
+		die($failImg." Multi Image cannot be posted to Liked Pages!");
+	$urlcount = 0;
+	for ($i=1;$i<=7;++$i) {
+    	if ( $_POST[ 'URL'.$i ] != '' ) {
+    		++$urlcount;
+    		$params["url$urlcount"] = $_POST['URL'.$i];
+    		$imgURLs[] = $_POST['URL'.$i];
+    	}
+    }
+    if ( $urlcount < 2 ) {
+        die( $failImg . " " . $lang['Multi Images Required'] );
+    }
+    $params[ "message" ] = $_POST[ 'Message' ];
+    $feed                    = '/' . $GLOBALS[ '__FBAPI__' ] . '/' . $pageID . '/' . "feed";
+    $postlink .= $pageID . "/posts/";
 } elseif ( $ptype == "V" ) {
     // Video Post        
     if ( $_POST[ 'URL' ] == '' ) {
@@ -203,22 +236,20 @@ if ( $ptype == "I" ) {
     $params[ "description" ] = $_POST[ 'Message' ];
     $feed                    = '/' . $GLOBALS[ '__FBAPI__' ] . '/' . $pageID . '/' . "videos";
     $postlink .= "photo.php?v=";
-    
-    //video checking for dailymotion
+    $params[ "URL" ]       = $_POST[ 'URL' ];
+    //video checking for dailymotion    	
     if ( stripos( $_POST[ 'URL' ], 'dailymotion.com/video' ) !== false ) {
         if ( $adminOptions[ 'enableDemo' ] )
             die( "$failImg Dailymotion " . $lang['Video uploading'] . " " . $lang['disabled in demo'] . ". " . $lang['Buy script'] );
         $url = str_replace( '/video/', '/embed/video/', $_POST[ 'URL' ] );
         $embed = readURL( $url );
-        $url = getStringBetween( $embed, "\"stream_h264_hd_url\":", "," );
-        if ( $url == "null" )
-            $url = getStringBetween( $embed, "\"stream_h264_hq_url\":", "," );
-        if ( $url == "null" )
-            $url = getStringBetween( $embed, "\"stream_h264_ld_url\":", "," );
-        if ( $url == "null" )
-            $url = getStringBetween( $embed, "\"stream_h264_url\":", "," );
+        $url1 = getStringBetween( $embed, "{\"type\":\"video\/mp4\",\"url\":\"", "\"", true );
+        $url2 = getStringBetween( $embed, "{\"type\":\"video\/mp4\",\"url\":\"", "\"", true );
+        $url3 = getStringBetween( $embed, "{\"type\":\"video\/mp4\",\"url\":\"", "\"", true );
+        $url4 = getStringBetween( $embed, "{\"type\":\"video\/mp4\",\"url\":\"", "\"", true );
+        $url  = ($url4 == "" ? ($url3 == "" ? ($url2 == "" ? $url1 : $url2) : $url3) : $url4);
         $url = str_replace( '\\', '', $url );
-        $params[ "file_url" ] = 'http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '?proxyurl=' . encrypt( urlencode( substr( $url, 1, -1 )  ) );
+        $params[ "file_url" ] = 'http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '?proxyurl=' . encrypt( urlencode( $url ) );        
     } else {  
         //video checker for youtube
         $vid        = parseYtUrl( $_POST[ 'URL' ] );
@@ -240,6 +271,25 @@ if ( $ptype == "I" ) {
                     break;
                 }
             }
+        } elseif ( parseFBUrl( $_POST[ 'URL' ] ) ) {
+			$embed = readURL( $_POST[ 'URL' ], "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
+	    	$sd_src_no_ratelimit = getStringBetween($embed, 'sd_src_no_ratelimit:"', '",');
+	    	$hd_src_no_ratelimit = getStringBetween($embed, 'hd_src_no_ratelimit:"', '",');
+	    	if ( $sd_src_no_ratelimit == "" && $hd_src_no_ratelimit == "" ) {
+				$sd_src_no_ratelimit = getStringBetween($embed, 'sd_src_no_ratelimit":"', '",');
+	    		$hd_src_no_ratelimit = getStringBetween($embed, 'hd_src_no_ratelimit":"', '",');
+			}			
+			$params[ "file_url" ] = ($hd_src_no_ratelimit ? $hd_src_no_ratelimit : $sd_src_no_ratelimit );
+			$params[ "file_url" ] = strstr($params[ "file_url" ],"http");
+			$params[ "file_url" ] = str_replace("\u00255C\u00252F","/",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\u00253A",":",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\u00253F","?",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\u00253D","=",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\u002526","&",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\u002522\u00253A\u002522","",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\u002522","\"",$params[ "file_url" ]);
+			//$params[ "file_url" ] = str_replace("https","http",$params[ "file_url" ]);
+			$params[ "file_url" ] = str_replace("\/","/",$params[ "file_url" ]);
         } elseif ( !file_exists( $_SERVER[ 'DOCUMENT_ROOT' ] . $_POST[ 'URL' ] ) ) {
             $params[ "file_url" ] = $_POST[ 'URL' ];
         } else {
@@ -256,7 +306,6 @@ if ( $ptype == "I" ) {
     $postlink .= $pageID . "/posts/";
 }
 if ( ( !$isGroupPost && ( $userId != $pageID ) ) || $adminOptions[ 'useCron' ] ) {
-    // Group/Profile posts cannot be scheduled unless cron enabled by Admin (%5Dkp%22kx%2AWylsx)
     if ( isset( $_POST[ 'timezone' ] ) ) {
         if ( is_numeric( $_POST[ 'timezone' ] ) ) {
             $timezone = 'Etc/GMT' . ( $_POST[ 'timezone' ] > 0 ? '-' : '+' );
@@ -320,8 +369,11 @@ try {
                             $p = explode( ":", $page );
                             if ( $p[ 0 ] == $tempPageID ) {
                             	if ( $p[ 1 ] == 'L' ) {
+                            		if (($ptype == "M") || ($ptype == "A"))
+										continue 2;
                                     $access_token = $userToken;                        
                                     $feed = str_replace( $tempPageID, substr( $tempPageID, 0, -1 ), $feed );
+                                    $tempPageID = substr( $tempPageID, 0, -1 );
                                     $isLikedPagePost = true;
                                 } else
                                 	$access_token = $p[ 3 ];
@@ -329,10 +381,15 @@ try {
                             }
                         }
                     }
+                    if ($access_token == '')
+                    	$isGroupPost = true;
                     foreach ( $params as $pk => $ps ) {
                         if ( $pv != "" )
                             $pv .= "|";
-                        $pt = $spintax -> process( $ps );
+                        if ($pk != 'slideshow_spec')   
+                        	$pt = $spintax -> process( $ps );
+                        else
+                        	$pt = $ps;
                         $pt = str_replace( array( "--TARGETNAME--", "--MYNAME--", "--FULLDATETIME--", "--DATE--", "--TIME--", "--SCHEDULEDATE--", "--SCHEDULETIME--", "--UNIQUEID--" ),
                                            array( ( $access_token ? htmlentities( urldecode( $p[ 2 ] ), ENT_COMPAT, 'UTF-8' ) : ( $userId == $tempPageID ? $fullname : $tempPageID ) ), $fullname, date( 'd-M-Y G:i', time() ), date( 'd/m/y', time() ), date( 'G:i', time() ), $_POST[ 'date' ], $_POST[ 'time' ], uniqid() ), $pt );
                         $pv .= $pk . "," . urlencode( $pt );
@@ -348,7 +405,7 @@ try {
                         $pv .= $pk . "," . urlencode( $ps );
                     }
                 }
-                $pv .= "|postType,$ptype|targetID,$pageID";
+                $pv .= "|postType,$ptype|targetID,$tempPageID|isGroupPost,$isGroupPost";
                 $statement = $db->prepare( "INSERT INTO Crons VALUES (\"$schedule\",\"$fullname ($user)\",\"$feed\",\"$pv\",\"" . microtime() . "\")" );
                 if ( $statement ) {
                     $statement->execute();
@@ -385,13 +442,20 @@ try {
             die($failImg." SLog Old Records Deletion failed!");
         }
 		try {
+			if ($ptype == "M") {
+				for ($i=1;$i<=$urlcount;++$i) {
+					$ret = $fb->api( '/' . $GLOBALS[ '__FBAPI__' ] . '/' . $pageID . '/' . "photos", 'POST', array("access_token"=>$access_token,"caption"=>"","url"=>$params["url$i"],"published"=>"false") );
+					$media_id[] = $ret[ 'id' ];
+					$params["attached_media[" . ($i-1) . "]"] = "{'media_fbid':'" . $ret[ 'id' ] . "'}";
+			    }			    
+			}
 			$ret = $fb->api( $feed, 'POST', $params );
 	        if ( strpos( $ret[ 'id' ], "_" ) !== false ) {
 	            $postlink .= substr( strstr( $ret[ 'id' ], "_" ), 1 );
 	        } else {
 	            $postlink .= $ret[ 'id' ];
 	        }
-	        $statement = $db3->prepare("INSERT INTO Logs VALUES (\"".time()."\",\"$fullname ($user)\",\"$ptype\",\"".$_POST['pageid']."\",\"$isGroupPost\",\"$resp\",\"1\",\"$postlink\",\"$postParams\")");
+	        $statement = $db3->prepare("INSERT INTO Logs VALUES (\"".time()."\",\"$fullname ($user)\",\"$ptype\",\"".$pageID."\",\"$isGroupPost\",\"$resp\",\"1\",\"$postlink\",\"$postParams\")");
             if ($statement) {
                 $statement->execute();
             } else {
@@ -399,7 +463,7 @@ try {
             }
             echo $successImg . $lang['Successfully'] . ' ' . $resp . " " . $lang['to Facebook'] . " - <a href='$postlink' target=sf>" . $lang['Post Link'] . "</a>";
 		} catch ( Exception $e ) {
-			$statement = $db3->prepare("INSERT INTO Logs VALUES (\"".time()."\",\"$fullname ($user)\",\"$ptype\",\"".$_POST['pageid']."\",\"$isGroupPost\",\"" . $e->getMessage() . "\",\"0\",\"" . $e->getMessage() . "\",\"$postParams\")");
+			$statement = $db3->prepare("INSERT INTO Logs VALUES (\"".time()."\",\"$fullname ($user)\",\"$ptype\",\"".$pageID."\",\"$isGroupPost\",\"" . $e->getMessage() . "\",\"0\",\"" . $e->getMessage() . "\",\"$postParams\")");
             if ($statement) {
                 $statement->execute();
             } else {

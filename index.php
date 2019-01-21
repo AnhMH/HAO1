@@ -5,6 +5,10 @@
 ob_start();
 error_reporting( 0 );
 
+if ( ( isset( $_SERVER[ 'HTTP_X_FORWARDED_PROTO' ] ) && $_SERVER[ 'HTTP_X_FORWARDED_PROTO' ] === 'https' )
+	|| ( isset( $_SERVER[ 'HTTP_X_FORWARDED_SSL' ] ) && $_SERVER[ 'HTTP_X_FORWARDED_SSL' ] === 'on' ) ) {
+    $_SERVER['HTTPS']='on'; 
+}
 if ( file_exists( 'config.php' ) )
     require_once( 'config.php' );
 else
@@ -20,7 +24,7 @@ if ( !file_exists( $dbName . '-settings.db' ) || !file_exists( $dbName . '-logs.
     require( 'includes/createdbs.php' );
 
 readSettings();
-
+require_once( 'lang/en-lang.php' );
 if ( ( isset( $_GET[ 'lang' ] ) || isset( $_COOKIE[ 'FBMPGPLang' ] ) ) && file_exists( 'lang/' . ( isset( $_GET[ 'lang' ] ) ? $_GET[ 'lang' ] : $_COOKIE[ 'FBMPGPLang' ] ) . '-lang.php' ) )
     require_once( 'lang/' . ( isset( $_GET[ 'lang' ] ) ? $_GET[ 'lang' ] : $_COOKIE[ 'FBMPGPLang' ] ) . '-lang.php' );
 else
@@ -115,22 +119,21 @@ if ( isset( $_GET[ 'code' ] ) ) {
 }
 
 // Now the user must be logged in already for the below code to be executed
-
+execComponent( 'userLoggedIn' );
 // Access Token Checking
 if ($adminOptions['emailVerify'] && $userOptions['emailSent'] && !$userOption['emailVerified']) {
 	showHTML( $lang['Email Not Verified'], $lang['Welcome'] . " $userName" );
-} elseif ( $userToken != "" ) {
+} elseif ( $userToken != "" && !isset( $_POST[ 'token' ] ) && !isset( $_GET[ 'ucp' ] ) ) {
     require_once( 'includes/fbtoken.php' );
-} elseif ( !isset( $_POST[ 'token' ] ) ) {
+} elseif ( !isset( $_POST[ 'token' ] ) && !isset( $_GET[ 'ucp' ] ) ) {
     $message = '<div>' . $lang['Not Authorized'] . '.<br />
             ' . $lang['Click Authorize'] . '.<br /><br /><center>
             <form method=get id=Authorize action="https://www.facebook.com/' . $GLOBALS[ '__FBAPI__' ] . '/dialog/oauth">
             <input type=hidden name=client_id value="' . $config[ 'appId' ] . '">
-            <input type=hidden name=redirect_uri value="http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '">
-            <input type=hidden name=scope value="public_profile,user_photos,user_likes,user_managed_groups,manage_pages,publish_pages,publish_actions">
+            <input type=hidden name=redirect_uri value="' . ($_SERVER[ 'HTTPS' ] ? 'https': 'http') . '://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '">
+            <!-- <input type=hidden name=scope value="public_profile,user_photos,user_likes,user_managed_groups,manage_pages,publish_pages,publish_actions"> -->
             <input type=hidden name=state value="' . $userName . '|safInit">    
-            <input type=submit value="' . $lang['Authorize'] . '">&nbsp;<input type=button onclick="showToken()" value="' . $lang['Enter'] . ' ' . $lang['Access Token'] . '">&nbsp;<sup><a href="" onclick="showTokenHelp();return false;">[?]</a></sup>
-            </form></center>
+            <input type=submit value="' . $lang['Authorize'] . '">&nbsp;<input type=button onclick="showToken()" value="' . $lang['Enter'] . ' ' . $lang['Access Token'] . '"></form></center>
         </div><br />
         <div style="font-size: x-small"><b>' . $lang['Permissions Required'] . ':</b><br />
             <b><em>' . $lang['Your Profile'] . ' - </em></b> ' . $lang['Profile Description'] . '.<br />
@@ -138,20 +141,8 @@ if ($adminOptions['emailVerify'] && $userOptions['emailSent'] && !$userOption['e
             <b><em>' . $lang['Your Pages'] . ' - </em></b> ' . $lang['Pages Description'] . '.<br />
             <b><em>' . $lang['Publish Actions'] . ' - </em></b> ' . $lang['Publish Description'] . '.<br />
             <b><em>' . $lang['Groups List'] . ' - </em></b> ' . $lang['Groups Description'] . '.<br />
-        </div>
-        <div id=token class="lightbox ui-widget-content"><center>
-			<form name=Account class="confirm" id=Account method=post action="?ucp">
-				<h3 class="lightbox ui-widget-header">' . $lang["Access Token"] . '</h3>
-				<br />
-				<textarea name=token id=userTokenValue class="textbox" rows=5>' . ( $hardDemo && ( $userName == "Multi" ) ? "*****" : $userToken ) . '</textarea><input type=hidden name="users">
-				</table>
-				<input id=updateToken type=submit default value="' . $lang["Update"] . '" disabled> <input type=button value="' . $lang["OKay"] . '"  onclick=\"$("#token").trigger("close");\">
-			</form><br />							
-			</center>
-        </div>
-        <div id=tokenhelp class="lightbox ui-widget-content">
-			<div id="fb-root"></div><script>(function(d, s, id) {  var js, fjs = d.getElementsByTagName(s)[0];  if (d.getElementById(id)) return;  js = d.createElement(s); js.id = id;  js.src = "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.3";  fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script><div class="fb-video" data-allowfullscreen="1" data-href="/SarirSoftwares/videos/vb.658561290933922/767674873355896/?type=3"><div class="fb-xfbml-parse-ignore"><blockquote cite="https://www.facebook.com/SarirSoftwares/videos/767674873355896/"><a href="https://www.facebook.com/SarirSoftwares/videos/767674873355896/">Two Methods of Getting Access Tokens</a><p>Tutorial on getting application access tokens.Method One : Graph API Explorer TokenMethod Two: HTC Sense App TokenGraph API token is short lived, and expires after a few hours, or a day at most. HTC token has long expiry times.Graph API Explorer Tool URL:https://developers.facebook.com/tools/explorer/The URL to get HTC Sense Token, as indicated in the video is;https://www.facebook.com/dialog/oauth/?app_id=41158896424&amp;next=http%3A%2F%2Fwww.facebook.com%2Fconnect%2Flogin_success.html&amp;response_type=token&amp;client_id=41158896424&amp;state=y&amp;scope=public_profile,user_photos,user_likes,user_managed_groups,user_groups,manage_pages,publish_pages,publish_actions</p>Posted by <a href="https://www.facebook.com/SarirSoftwares/">Sarir Softwares</a> on Wednesday, 18 November 2015</blockquote></div></div>
-		</div>';
+        </div>';
+    $message .= require_once( 'includes/tptoken.php' );
     $message .= "<script>            
             function showToken() {
                 $('#token').lightbox_me({
@@ -178,7 +169,6 @@ if ($adminOptions['emailVerify'] && $userOptions['emailSent'] && !$userOption['e
             </script>";
     showHTML( $message, $lang['Welcome'] . " $userName" );
 }
-
 // Is this a Page/Groups Refresh Data Request?
 if ( isset( $_GET[ 'rg' ] ) || isset( $_POST[ 'upGroups' ] ) ) {
     require_once( 'includes/fbrg.php' );

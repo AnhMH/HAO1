@@ -1,7 +1,20 @@
 <?php
 
-$lang = array();
+//$lang = array();
 
+$lang['Multi'] = "Çok";
+$lang['Multi Images Required'] = "En az 2 resim gerekli";
+
+$lang['Click Here'] = "Buraya Tıkla";
+$lang['Grant Permissions'] = "İzinleri Ver";
+$lang['Keep Window'] = "Pencereyi / sekmeyi açık tutun";
+$lang['Drag this link'] = "Bir bookmarklet oluşturmak için bu bağlantıyı / metni yer imleri çubuğuna sürükleyin.";
+$lang['Click Bookmarklet'] = "Erişim simgesi almak için o pencere / sekmedeki favori simgesini tıklayın";
+$lang['Copy Token'] = "Başarı mesajı göründüğünde URL'yi adres çubuğuna hızlı bir şekilde kopyalayın";
+$lang['Step 4'] = "Aşama 4";
+$lang['Step 5'] = "Aşama 5";
+
+$lang['Shorten Links'] = "Tüm Bağlantıları Kısaltın";
 $lang['No Logs'] = "Henüz günlükleri. ";
 $lang['Post Logs'] = "Mesaj Günlükleri";
 

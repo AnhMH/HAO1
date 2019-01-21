@@ -4,7 +4,7 @@
 // Created by Novartis (Safwan)
 
 chdir( dirname( __FILE__ ) );
-
+error_reporting( 0 );
 $curTime = time();
 $curTimeString = date( 'd-M-Y G:i', $curTime );
 
@@ -22,17 +22,20 @@ readSettings();
 if ( !$adminOptions[ 'useCron' ] )
     echoDie( "$curTimeString: CRON disabled\n", 1 );
 
-if ( ( $curTime - $adminOptions[ 'lastCronRun' ] ) < ( $adminOptions[ 'cronDelay' ] * 60 ) )
+if ( ( $curTime - $adminOptions[ 'lastCronRun' ] + 5 ) < ( $adminOptions[ 'cronDelay' ] * 60 ) )
     echoDie( "$curTimeString: Too Early Run\n", 1 );
 
-$postsToGet = $adminOptions[ 'maxCronPosts' ];
-$totalPosts = 0;
 $adminOptions[ 'lastCronExecution' ] = $curTime;
 saveAdminOptions();
 
 if ( ($db = new PDO( 'sqlite:' . $dbName . '-crons.db' )) && ($db2 = new PDO( 'sqlite:' . $dbName . '-users.db' )) && 
       ($db3 = new PDO( 'sqlite:' . $dbName . '-logs.db' )) ) {
-    $oldRecDate = time() - 84600 * 7;
+    global $curTime, $curTimeString, $adminOptions, $userOptions, $userId, $config; //tocheck
+    $totalPosts = 0;
+    $totalPosts2 = 0;
+	$batchPosts = 40;
+	$batchParams = '[';
+    $oldRecDate = time() - 84600 * 7;    
 	$statement = $db3->prepare("DELETE FROM Logs WHERE date < " . $oldRecDate );
     if ($statement) {
         $statement->execute();
@@ -41,7 +44,7 @@ if ( ($db = new PDO( 'sqlite:' . $dbName . '-crons.db' )) && ($db2 = new PDO( 's
     }
 	selectPosts:
 	$failedPosts = 0;
-    $statement = $db->prepare( "SELECT * FROM Crons WHERE date <= " . $curTime . " ORDER BY date DESC LIMIT 0," . $postsToGet );
+    $statement = $db->prepare( "SELECT * FROM Crons WHERE date <= " . $curTime . " ORDER BY date ASC" );
     if ( $statement ) {
         $statement->execute();
     } else {
@@ -50,10 +53,11 @@ if ( ($db = new PDO( 'sqlite:' . $dbName . '-crons.db' )) && ($db2 = new PDO( 's
     $tempData = $statement->fetchAll();
     if ( !count( $tempData ) )
         die();
-    $totalPosts += count( $tempData );
+    $totalPosts2 += count( $tempData );
     $adminOptions[ 'lastCronRun' ] = $curTime;
     saveAdminOptions();
     $db->beginTransaction();
+    
     foreach ( $tempData as $v ) {
         $p      = explode( '|', $v[ 'params' ] );
         $params = array();
@@ -87,8 +91,8 @@ if ( ($db = new PDO( 'sqlite:' . $dbName . '-crons.db' )) && ($db2 = new PDO( 's
 				        }
 				        ++$failedPosts;
 				        continue;
-					} else {
-						if (($curTime - $userOptions['lastCronPostTime']) > ( $userOptions[ 'autoPauseDelay' ] * 60 ) )
+					} elseif ( !isset( $userPosts[$username] ) || ( $userPosts[$username] <= $adminOptions[ 'maxCronPosts' ] - 1 ) ) {
+						if (($curTime - $userOptions['lastCronPostTime']) >= ( $userOptions[ 'autoPauseDelay' ] * 60 - 10 ) )
 							$userOptions['totalCronPosts'] = 0;
 						$userOptions['lastCronPostTime'] = time();
 						++$userOptions['totalCronPosts'];
@@ -108,46 +112,114 @@ if ( ($db = new PDO( 'sqlite:' . $dbName . '-crons.db' )) && ($db2 = new PDO( 's
             ++$failedPosts;
             goto PostDel;
         }
-        $postParams = '';
-	    while ($f = current($params)) {
-	        if ((key($params) != "access_token") && (key($params) != "scheduled_publish_time") ) $postParams .= key($params).':'.urlencode($f).'|';
-	        next($params);
-	    }
-        try {        	
-            require_once( "src/facebook.php" );
-            $fb  = new Facebook( $config );
-            $ret = $fb->api( $v[ 'feed' ], 'POST', $params );
-            $postlink = 'https://www.facebook.com/';
-            if ( strpos( $ret[ 'id' ], "_" ) !== false ) {
-	            $postlink .= substr( strstr( $ret[ 'id' ], "_" ), 1 );
+        if ( !isset( $userPosts[$username] ) || ( $userPosts[$username] <= $adminOptions[ 'maxCronPosts' ] - 1 ) && ( $totalPosts <= $batchPosts ) ) {
+        	if ($params["postType"] == "M") {
+        		require_once( "src/facebook.php" );
+				$fb = new Facebook( $config );
+				for ($i=1;$i<=7;++$i) {
+					if (array_key_exists("url$i",$params)) {
+						try {
+							$ret = $fb->api( '/' . $GLOBALS[ '__FBAPI__' ] . '/' . $params["targetID"] . '/' . "photos", 'POST', array("access_token"=>$params[ "access_token" ],"caption"=>"","url"=>$params["url$i"],"published"=>"false") );							
+							$params["attached_media[" . ($i-1) . "]"] = "{'media_fbid':'" . $ret[ 'id' ] . "'}";
+							echoDie( "$curTimeString: Photo $i uploaded for multi-image post " . $v["user"] . "\n" );
+						} catch ( Exception $e ) {
+				        	echoDie( "$curTimeString: Exception running/posting via CRON: " . $e->getMessage(). "\n" );
+				        }   
+					}					
+			    }	
+			}
+			$postParams = '';
+		    while ($f = current($params)) {
+		        if ((key($params) != "access_token") && (key($params) != "scheduled_publish_time") )
+		        	$postParams .= key($params).':'.urlencode($f).'|';
+		        next($params);
+		    }	
+		    if (!isset($batchParamsStarted)) {
+				$batchParams2 = "{";
+				$batchParamsStarted = 1;
+			} else {				
+				$batchParams2 = ",{";
+			}		    	
+			$batchParams2 .= '"method":"POST",';
+			$batchParams2 .= '"relative_url":"' . $v[ 'feed' ] . '?access_token=' . $params[ "access_token" ] . '","body":"';
+		    foreach ($params as $pkey => $pval) {
+				if ($pkey != 'access_token' && $pkey != 'isGroupPost' && $pkey != 'postType' && $pkey != 'targetID' ) {					
+					$batchParams2 .= "$pkey=" . urlencode($pval) . "&";
+				}					
+			}
+			$batchParams2 .= '"}';
+			$batchParams .= ($batchParams2);
+			if (!isset($userPosts[$username])) $userPosts[$username] = 0;
+		    ++$userPosts[$username];
+		    ++$totalPosts;
+		    $currentPosts[] = array(
+				"user" => $v['user'],
+				"params" => $params,
+				"postParams" => $postParams,
+				"status" => $v[ 'status' ]
+			);
+			PostDel:
+	        $statement = $db->prepare( "DELETE FROM Crons WHERE status = \"" . $v[ 'status' ] . "\"" );
+	        if ( $statement ) {
+	            $statement->execute();
 	        } else {
-	            $postlink .= $ret[ 'id' ];
+	            echoDie( "$curTimeString: Del Fail for " . $v[ 'status' ] . " ($username)\n" );
 	        }
-            $statement = $db3->prepare("INSERT INTO Logs VALUES (\"".time()."\",\"".$v['user']."\",\"". $params[ 'postType' ]."\",\"".$params[ 'targetID' ]."\",\"1\",\"posted\",\"1\",\"$postlink\",\"$postParams\")");
-            if ($statement) {
-                $statement->execute();
-            } else
-            	echoDie( "$curTimeString: Post Logging Fail for " . $v[ 'status' ] . ": " . $e->getMessage() . " ($username)\n" );
-            echoDie( "$curTimeString: Posted " . $v[ 'status' ] . " ($username)\n" );
+		}		
+    }
+    $batchParams .= "]";
+    try { 	
+    		$graph_url = "https://graph.facebook.com/" . $GLOBALS[ '__FBAPI__' ] ."/";
+    		$postData = "batch=" . urlencode( trim( json_encode( $batchParams ), '"')). "&include_headers=false&access_token=".$adminOptions[ "admintoken" ];
+    		$postData = str_replace("%5C%22",'%22',$postData);
+    		
+	    	$ch = curl_init();
+	        curl_setopt($ch, CURLOPT_URL, $graph_url);
+	        curl_setopt($ch, CURLOPT_HEADER, 0);
+	        curl_setopt($ch, CURLOPT_POST, 1);
+	        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+	        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+
+	        $output = curl_exec($ch);
+	        curl_close($ch);
+            $rr = json_decode($output, true);  
+            $i = -1;
+            foreach($rr as $ret) {
+            	$postlink = 'https://www.facebook.com/';
+            	++$i;
+            	if ($ret{'code'} != "200") {
+            		if (($ret{'code'} == "190") && (isset($ret{'message'})))
+            			$error_message = "Application Administrator Token is invalid or expired. Contact Admin to rectify the token via Admin Panel";
+            		else
+						$error_message = getStringBetween($ret{'body'},'"message":"','","');
+            		$statement = $db3->prepare("INSERT INTO Logs VALUES ('".time()."','".$currentPosts[$i]["user"]."','". $currentPosts[$i]["params"]['postType']."','".$currentPosts[$i]["params"][ 'targetID' ]."','".$currentPosts[$i]["params"]['isGroupPost']."','" . $error_message . "','0','".$error_message."','".$currentPosts[$i]["postParams"]."')");
+		            if ($statement) {
+		                $statement->execute();
+		            } else
+		            	echoDie( "$curTimeString: Post Failure Logging Fail for " . $currentPosts[$i]{"status"} . ": (".$currentPosts[$i]["user"].")\n");
+		            echoDie( "$curTimeString: Post Fail for " . $v[ 'status' ] . ": (" . $currentPosts[$i]{"user"} . ")\n" );
+				} else {
+					$id_message = getStringBetween($ret{'body'},'"id":"','"');
+					if ( strpos( $id_message, "_" ) !== false ) {
+			            $postlink .= substr( strstr( $id_message, "_" ), 1 );
+			        } else {
+			            $postlink .= $id_message;
+			        }
+			        $statement = $db3->prepare("INSERT INTO Logs VALUES ('".time()."','".$currentPosts[$i]{"user"}."','". $currentPosts[$i]{"params"}['postType']."','".$currentPosts[$i]{"params"}[ 'targetID' ]."','".$currentPosts[$i]{"params"}[ 'isGroupPost' ]."','posted','1','$postlink','".$currentPosts[$i]{"postParams"}."')");
+		            if ($statement) {
+		                $statement->execute();
+		            } else
+		            	echoDie( "$curTimeString: Post Logging Fail for " . $currentPosts[$i]["status"] . ": (" . $currentPosts[$i]["user"] . ")\n" );
+		            echoDie( "$curTimeString: Posted " . $currentPosts[$i]["status"] . " (" . $currentPosts[$i]["user"] . ")\n" );
+				}	        
+			}
         }
         catch ( Exception $e ) {
-        	$statement = $db3->prepare("INSERT INTO Logs VALUES (\"".time()."\",\"".$v['user']."\",\"". $params[ 'postType' ]."\",\"".$params[ 'targetID' ]."\",\"1\",\"" . $e->getMessage() . "\",\"0\",\"".$e->getMessage()."\",\"$postParams\")");
-            if ($statement) {
-                $statement->execute();
-            } else
-            	echoDie( "$curTimeString: Post Failure Logging Fail for " . $v[ 'status' ] . ": " . $e->getMessage() . " ($username)\n" );
-            echoDie( "$curTimeString: Post Fail for " . $v[ 'status' ] . ": " . $e->getMessage() . " ($username)\n" );
-        }
-        PostDel:
-        $statement = $db->prepare( "DELETE FROM Crons WHERE status = \"" . $v[ 'status' ] . "\"" );
-        if ( $statement ) {
-            $statement->execute();
-        } else {
-            echoDie( "$curTimeString: Del Fail for " . $v[ 'status' ] . " ($username)\n" );
-        }
-    }
+        	echoDie( "$curTimeString: Exception running/posting via CRON: " . $e->getMessage(). "\n" );
+        }        
     $db->commit();
-    if ($failedPosts && ($totalPosts<50)) {
+    if ($failedPosts && ($totalPosts2 < 50)) {
 		$postsToGet = $failedPosts;
 		goto selectPosts;
 	}
@@ -158,7 +230,7 @@ function echoDie($string = '', $shouldDie = false) {
 	if ($string){
 		if ( !file_exists( 'cronlog.php' ) || ( filesize( 'cronlog.php' ) > 1048576 ) ) {
 			$fp = fopen("cronlog.php", "w");
-			fwrite($fp, "<?php\n\r/*");
+			fwrite($fp, "<?php\n\r/*\n\r");
 			fclose($fp);
 		}
 		$fp = fopen("cronlog.php", "a");

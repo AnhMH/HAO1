@@ -1,7 +1,20 @@
 <?php
 
-$lang = array();
+//$lang = array();
 
+$lang['Multi'] = "Multi";
+$lang['Multi Images Required'] = "Mindestens 2 Bilder benötigt";
+
+$lang['Click Here'] = "Klick hier";
+$lang['Grant Permissions'] = "Berechtigungen erteilen";
+$lang['Keep Window'] = "Halten Sie das Fenster / die Lasche geöffnet";
+$lang['Drag this link'] = "Ziehen Sie diesen Link / Text in die Lesezeichenleiste, um ein Lesezeichen zu erstellen";
+$lang['Click Bookmarklet'] = "Klicken Sie auf das Lesezeichen auf diesem Fenster / Tab, um Zugriffstoken zu erhalten";
+$lang['Copy Token'] = "Kopiere die URL in der Adressleiste schnell, sobald die Erfolgsmeldung erscheint";
+$lang['Step 4'] = "Schritt 4";
+$lang['Step 5'] = "Schritt 5";
+
+$lang['Shorten Links'] = "Verkürzen Sie alle Links";
 $lang['No Logs'] = "Keine Protokolle noch. ";
 $lang['Post Logs'] = "POST-Protokolle";
 

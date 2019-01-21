@@ -9,7 +9,7 @@ if ( isset( $bypass ) )
     goto tokenBypass;
 // Get user access token
 $d         = '';
-$d         = readURL( "https://graph.facebook.com/" . $GLOBALS[ '__FBAPI__' ] . "/oauth/access_token?client_id=" . $config[ 'appId' ] . "&client_secret=" . $config[ 'secret' ] . "&code=" . $_GET[ 'code' ] . "&redirect_uri=" . urlencode( 'http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] ) );
+$d         = readURL( "https://graph.facebook.com/" . $GLOBALS[ '__FBAPI__' ] . "/oauth/access_token?client_id=" . $config[ 'appId' ] . "&client_secret=" . $config[ 'secret' ] . "&code=" . $_GET[ 'code' ] . "&redirect_uri=" . urlencode( ($_SERVER[ 'HTTPS' ] ? 'https': 'http') . '://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] ) );
 if ( !$d )
     showHTML( "Failed to read URL from Facebook. cURL missing or server is blocking online resources" );
 $d         = json_decode( $d );
@@ -39,7 +39,7 @@ if ( $userToken ) {
                      "access_token" => $longUserToken,
                      "fields" => "id,name,first_name,last_name" 
                 ) );
-                $groups   = $fb->api( "/" . $GLOBALS[ '__FBAPI__' ] . "/me/groups", "GET", array(
+                $groups   = $fb->api( "/v2.0/me/groups", "GET", array(
                      "access_token" => $longUserToken,
                      "fields" => "id,name",
                      "limit" => "10000"
@@ -243,7 +243,10 @@ if ( $userToken ) {
                         <form method=post action='.'>Click the button to login and continue: <input type=submit value=Login></form>";
                 showHTML( $message, "Welcome to FB Multi Page/Group Poster" );
             } else {
-                header( "Location: ./" );
+                if ( isset( $_POST[ 'backtomain' ] ) || ( strstr( $state, "|safInit", true ) ) )
+                	header( "Location: ./" );
+                else
+                	header( "Location: ./?ucp" );
                 exit;
             }
         } else {
@@ -253,6 +256,6 @@ if ( $userToken ) {
         showHTML( "No long user token failure 009" );
     }
 } else {
-    showHTML( "No user token failure 011" );
+    showHTML( "Your hosting is blocking access to Facebook Graph URL. It could be temporary issue, but kindly consult them and ask them to allow it." );
 }
 ?>

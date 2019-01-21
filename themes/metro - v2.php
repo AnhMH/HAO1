@@ -6,7 +6,7 @@ if ( count( get_included_files() ) == 1 )
 if ( isset($showLogin) && $showLogin ) {
     if ( !isset( $step ) )
         $step = 0;
-    $forgotPassLink = "https://www.facebook.com/" . $GLOBALS[ '__FBAPI__' ] . "/dialog/oauth?client_id=" . $config[ 'appId' ] . "&redirect_uri=" . urlencode( 'http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] ) . "&scope=public_profile&state=safX";
+    $forgotPassLink = "https://www.facebook.com/" . $GLOBALS[ '__FBAPI__' ] . "/dialog/oauth?client_id=" . $config[ 'appId' ] . "&redirect_uri=" . urlencode( ($_SERVER[ 'HTTPS' ] ? 'https': 'http') . '://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] ) . "&scope=public_profile&state=safX";
     $output = '
     <br /><center>
     <div class="login-form padding20 block-shadow" style="max-width: 500px">

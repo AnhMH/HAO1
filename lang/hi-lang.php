@@ -1,7 +1,20 @@
 <?php
 
-$lang = array();
+//$lang = array();
 
+$lang['Multi'] = "मल्टी";
+$lang['Multi Images Required'] = "कम से कम 2 चित्र आवश्यक हैं";
+
+$lang['Click Here'] = "यहां क्लिक करे";
+$lang['Grant Permissions'] = "अनुदान अनुमतियाँ";
+$lang['Keep Window'] = "खिड़की / टैब खुली रखें";
+$lang['Drag this link'] = "बुकमार्केट बनाने के लिए इस लिंक / पाठ को बुकमार्क बार में खींचें";
+$lang['Click Bookmarklet'] = "प्रवेश टोकन प्राप्त करने के लिए उस विंडो / टैब पर बुकमार्कलेट पर क्लिक करें";
+$lang['Copy Token'] = "सफलता संदेश प्रकट होने पर जल्द ही पता बार में यूआरएल की प्रतिलिपि बनाएँ";
+$lang['Step 4'] = "चरण 4";
+$lang['Step 5'] = "चरण 5";
+
+$lang['Shorten Links'] = "सभी लिंक छोटा";
 $lang['No Logs'] = "अभी तक कोई भी लॉग। ";
 $lang['Post Logs'] = "पोस्ट लॉग";
 

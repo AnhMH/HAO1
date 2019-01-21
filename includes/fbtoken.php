@@ -46,6 +46,39 @@ if ( !isset( $userOptions[ 'role' ] ) || $userOptions[ 'role' ] == "" ) {
                         <strong>' . $lang['Step 3'] . ':</strong> ' . $lang['return here'] . '<br />
                         <br /><br />                                                        
                         <strong>' . $lang['Note'] . '</strong>: ' . $lang['Note full'] . '<br /></div>';
+        $userToken = '';
+        $message .= '<br /><center>
+            <form method=get id=Authorize action="https://www.facebook.com/' . $GLOBALS[ '__FBAPI__' ] . '/dialog/oauth">
+            <input type=hidden name=client_id value="' . $config[ 'appId' ] . '">
+            <input type=hidden name=redirect_uri value="' . ($_SERVER[ 'HTTPS' ] ? 'https': 'http') . '://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '">
+            <!-- <input type=hidden name=scope value="public_profile,user_photos,user_likes,user_managed_groups,manage_pages,publish_pages,publish_actions"> -->
+            <input type=hidden name=state value="' . $userName . '|safInit">    
+            <input type=button onclick="showToken()" value="' . $lang['or'] . ' ' . $lang['Enter'] . ' ' . $lang['Access Token'] . '"></form></center>';
+        $message .= require_once( 'includes/tptoken.php' );
+	    $message .= "<script>            
+	            function showToken() {
+	                $('#token').lightbox_me({
+	                    centered: true, 
+	                    onLoad: function() { 
+	                        $('#Account').find('textarea:first').focus()
+	                    }
+	                }); 
+	            }
+	            function showTokenHelp() {
+	                $('#tokenhelp').lightbox_me({
+	                    centered: true,                     
+	                }); 
+	            }
+	            $(document).ready(function() {
+	                $('#userTokenValue').on('change keydown paste', function(){
+	                      $('#updateToken').enable();
+	                });
+	            });
+	            $('#Authorize').easyconfirm({
+	                eventType: 'submit',
+	                locale: { title: '" . $lang['Important Note'] . "', text: '" . $lang['User Auth Note'] . "', button: ['" . $lang['Cancel'] . "','" . $lang['Proceed'] . "']}
+	            });
+	            </script>";
         showHTML( $message, $lang['Welcome'] . " $userName" );
     }
 } else {

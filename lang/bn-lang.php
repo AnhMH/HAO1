@@ -1,7 +1,20 @@
 <?php
 
-$lang = array();
+//$lang = array();
 
+$lang['Multi'] = "মাল্টি";
+$lang['Multi Images Required'] = "কমপক্ষে 2 টি চিত্র প্রয়োজন";
+
+$lang['Click Here'] = "এখানে ক্লিক করুন";
+$lang['Grant Permissions'] = "অনুমতিগুলি নিশ্চিত";
+$lang['Keep Window'] = "উইন্ডো / ট্যাব খোলা রাখুন";
+$lang['Drag this link'] = "একটি বুকমার্কলেটে তৈরি করতে বুকমার্কস দণ্ড করতে এই লিঙ্কটি / পাঠ্য টেনে আনুন";
+$lang['Click Bookmarklet'] = "অ্যাক্সেস টোকেন পাওয়ার জন্য যে উইন্ডো / ট্যাবে বুকমার্কলেটে ক্লিক করুন";
+$lang['Copy Token'] = "দ্রুত যত তাড়াতাড়ি সাফল্য বার্তা প্রদর্শিত হচ্ছে ঠিকানা বারে URL অনুলিপি করুন";
+$lang['Step 4'] = "ধাপ 4";
+$lang['Step 5'] = "পদক্ষেপ 5";
+
+$lang['Shorten Links'] = "সকল লিংক কমান";
 $lang['No Logs'] = "এখনও কোন লগ. ";
 $lang['Post Logs'] = "পোস্ট করো লগ";
 

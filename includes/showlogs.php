@@ -45,22 +45,17 @@ if ( $adminloggedIn || $loggedIn ) {
             $timezoneString = $_COOKIE['FBMPGPTimezoneValue'];        
             date_default_timezone_set($_COOKIE['FBMPGPTimezoneValue']);
         }
-        $message = '';
+        $message = '<div><table class=user cols=4><tr><th>Time<th>' . $lang['Username'] . '<th>' . $lang['Page'] . '/' . $lang['Group'] . '<th>' . $lang['Params'] . '<th>' . $lang['Information'] . '</tr>';
         foreach ($tempData as $s) {
         	//print_r($s);
-        	//die();
-        	if ($message != '')
-        		$message .= '<hr>';
+        	//die();        	
             $dateTime = new DateTime(date('d-M-Y G:i',$s['date']));
-            if (!isset($day)) {
+            if (isset($day) && (($dateTime->format('d-M-Y')) != $day)) {
                 $day = $dateTime->format('d-M-Y');
-                $message .= "<div class='log'><center><h3 class='page odd'>".$day."</h3></center><div style='padding: 2px;'>";
-            } elseif (($dateTime->format('d-M-Y')) != $day) {
-                $day = $dateTime->format('d-M-Y');
-                $message .= "</div></div><br /><div class='log'><center><h3 class='page odd'>".$day."</h3></center><div style='padding: 2px;'>";
-            }
-            if ($s['status']) $message .= $successImg; else $message .= $failImg;
-            $message .= " <img src=\"img/";
+                $message .= "<tr><td colspan=5></tr>";
+            } else
+            	$day = $dateTime->format('d-M-Y');          
+            $message .= "<tr><td> <img class=bottom src=\"img/";
             switch ($s['type']) {
                 case 'T':
                     $message .= "text.png\" title='TEXT'";
@@ -77,33 +72,41 @@ if ( $adminloggedIn || $loggedIn ) {
                 case 'V':
                     $message .= "video.png\" title='VIDEO'";
                     break;
+                case 'S':
+                    $message .= "slideshow.png\" title='Slideshow'";
+                    break;
+                case 'M':
+                    $message .= "multiimage.png\" title='Multi Image'";
+                    break;
                 default:
-                	$message .= "arrow.gif\" title='Slideshow'";
+                	$message .= "arrow.gif\" title='Unknown'";
             }
             $message .= " width=16 height=16 />";
-            $message .= " ".$dateTime->format('G:i');    
+            $message .= " ".$dateTime->format('d-M-Y G:i');    
             if ($loggedIn) $message .= " ($timezoneString)";
-            $message .= ": <strong>".$s['user']."</strong> to ";
-            $message .= ($s['targettype'] ? "Group ":"Page ") . "<a target=_new href='http://www.facebook.com/".$s['target']."'>".$s['target']."</a><br /><center><br> ";                
-            if ($s['status']) {
-                $message .= ucwords($s['action']);
-                $message .= ": <a target=_new href='".$s['permalink']."'>" . $lang['Post Link'] . "</a>";
-            } else {
-                $message .= "<span style='background-color: rgb(253,239,239);text-align:center;'>".$s['action']."</span>";
-            }
-            $message .= "<br />";
+            $message .= "<td><strong>".$s['user']."</strong><td>";
+            $message .= ($s['targettype'] ? $lang['Group']:$lang['Page']) . "&nbsp;<a target=_new href='http://www.facebook.com/".$s['target']."'>".$s['target']."</a>";
+            $message .= "<td style='word-break: break-all;'>";
             $param = explode("|",$s['params']);                
             foreach ($param as $p) {
             	$temp = explode(":",$p);
                 //list($k, $v) = explode(":",$p);
-                if ( ( $temp[0] ) && ( $temp[0] != "access_token" ) && ( $temp[0] != "postType" ) && ( $temp[0] != "targetID" ) )
+                if ( ( $temp[0] ) && ( $temp[0] != "access_token" ) && ( $temp[0] != "postType" ) && ( ($temp[0] != "file_url") || (strpos($s['params'],"URL:")=== FALSE) ) && ( $temp[0] != "targetID" ) && ( $temp[0] != "isGroupPost" ) && ( stripos($temp[0],"attached_media" ) === FALSE) )
                 	$message .= "<strong>".ucwords($temp[0])."</strong>: ".urldecode($temp[1])."<br />"; 
             }
-            $message .= "</center>";
+            $message .= "<td>";
+            if ($s['status']) {
+            	$message .= $successImg;
+                $message .= " <a target=_new href='".$s['permalink']."'>" . $lang['Post Link'] . "</a>";
+            } else {
+            	$message .= $failImg;
+                $message .= " <span style='background-color: rgb(253,239,239);text-align:center;'>".$s['action']."</span>";
+            }
+            $message .= "</tr>";
         }
-        $message .= "<br /></div></div>";
+        $message .= "</table></div>";
         if ($adminloggedIn) {
-            $message .= "<br /><div style='float: right'><form method='GET'><input type=hidden name='clogs' value=1><input type=submit value='" . $lang['Clear'] . " " . $lang['All'] . " " . $lang['Post Logs'] . "'></form></div>";
+            $message .= "<br /><center><form method='GET'><input type=hidden name='clogs' value=1><input type=submit value='" . $lang['Clear'] . " " . $lang['All'] . " " . $lang['Post Logs'] . "'></center></form>";
         }
         //Pagination of Results
         $message .= "<br><div>";

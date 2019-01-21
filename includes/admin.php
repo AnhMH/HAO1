@@ -70,22 +70,10 @@ if ( $adminloggedIn ) {
     }
     if ( ( isset( $_POST[ 'adminOptions' ] ) || isset( $_POST[ 'appID' ] ) || isset( $_POST[ 'purchaseCode' ] ) ) && $hardDemo ) {
         $warn = "This is online Demo, therefore, settings cannot be changed";
-        if ( isset( $_POST[ 'purchaseCode' ] ) )
+        if ( isset( $_POST[ 'purchaseCode' ] ) && ( !isset( $_POST[ 'adminOptions' ] ) ) )
             die( "Disabled in Demo" );
-    } elseif ( isset( $_POST[ 'purchaseCode' ] ) ) {
-        $adminOptions[ 'purchaseCode' ] = $_POST[ 'purchaseCode' ];
-        $adminOptions[ 'lastUpdateCheck' ] = time();
-        saveAdminOptions(); //Should prevent too-fast checks
-        $updateCheckResult = readURL( 'http://sarirsoftwares.com/fbmpgp/update.php?purchaseCode=' . $adminOptions[ 'purchaseCode' ] . '&version=' . $adminOptions[ 'version' ] ) or die ( "$failImg $updateCheckResult" . $lang['Error Checking Update'] );
-        if ( $updateCheckResult != '.' ) {
-            $updateCheckResult = json_decode( $updateCheckResult );
-            $adminOptions[ 'updateVersion' ] = $updateCheckResult->{ 'version' };
-            saveAdminOptions();
-            die( $updateCheckResult->{ 'html' } );
-        } else
-            die($successImg . " " . $lang[ 'Latest Version' ]);
-    } elseif ( isset( $_POST[ 'adminOptions' ] ) ) {    	
-        foreach ( $_POST as $key => $data ) {
+    } elseif ( isset( $_POST[ 'adminOptions' ] ) ) {
+    	foreach ( $_POST as $key => $data ) {
             if ( $key != "adminOptions" )
                 $adminOptions[ $key ] = $data;
         }
@@ -100,7 +88,19 @@ if ( $adminloggedIn ) {
         saveAdminOptions();        
         setcookie( "FBMPGPLang", $adminOptions[ 'lang' ], time() + 86400 * 365 );        
         header( "Location: ./?notify=" . $lang['Settings Saved'] );
-        exit;
+        exit;        
+    } elseif ( isset( $_POST[ 'purchaseCode' ] ) ) {    	
+        $adminOptions[ 'purchaseCode' ] = $_POST[ 'purchaseCode' ];
+        $adminOptions[ 'lastUpdateCheck' ] = time();
+        saveAdminOptions(); //Should prevent too-fast checks
+        $updateCheckResult = readURL( 'http://sarirsoftwares.com/fbmpgp/update.php?purchaseCode=' . $adminOptions[ 'purchaseCode' ] . '&version=' . $adminOptions[ 'version' ] ) or die ( "$failImg $updateCheckResult" . $lang['Error Checking Update'] );
+        if ( $updateCheckResult != '.' ) {
+            $updateCheckResult = json_decode( $updateCheckResult );
+            $adminOptions[ 'updateVersion' ] = $updateCheckResult->{ 'version' };
+            saveAdminOptions();
+            die( $updateCheckResult->{ 'html' } );
+        } else
+            die($successImg . " " . $lang[ 'Latest Version' ]);
     } elseif ( isset( $_POST[ 'appID' ] ) && isset( $_POST[ 'appSecret' ] ) ) {
         if ( $db = new PDO( 'sqlite:' . $dbName . '-settings.db' ) ) {
             $statement = $db->prepare( "UPDATE Settings SET appid = \"" . $_POST[ 'appID' ] . "\", secret = \"" . $_POST[ 'appSecret' ] . "\" WHERE admin <> 0" );
@@ -126,7 +126,7 @@ if ( $adminloggedIn ) {
         <div id=purchaseCode class='lightbox ui-widget-content'><center>
           <h3 class='lightbox ui-widget-header'>" . $lang['Enter'] . " " . $lang['Purchase Code'] . "</h3>
           <form name=purchaseCodeForm id='purchaseCodeForm' class='lightbox' method=post>
-          <input type=text size=10 name=purchaseCode class='textbox' value='" . $adminOptions[ 'purchaseCode' ] . "'><br />
+          <input type=text size=10 id=purchaseCodeUpdateForm name=purchaseCode class='textbox' value='" . $adminOptions[ 'purchaseCode' ] . "'><br />
           <input type=submit id='updateCheckSubmit' value='" . $lang['Proceed'] . "'></form></center></div>
         
         <div id=whatsNew class='lightbox ui-widget-content'><center>
@@ -177,13 +177,16 @@ if ( $adminloggedIn ) {
         $output .= "$failImg <strong>" . $lang['Application'] . " " . $lang['Name'] ."</strong>: <br />";    
     }
     //Admin Options
-    $output .= "<br /><div>
+    $output .= "<br /><br /><div>
         <hr><h4>" . $lang['Change'] . " " . $lang['password'] . ": </h4>
         <form name=adminCP method=post>
-        <table><tr><td>" . $lang['Enter'] . " " . $lang['current'] . " " . $lang['password'] . ":<td> <input type=password name=oldP><br />
+        <table class=user><colgroup>
+	       <col span='1' style='width: 40%;'>
+	       <col span='1' style='width: 60%;'>
+	    </colgroup><tr><td>" . $lang['Enter'] . " " . $lang['current'] . " " . $lang['password'] . ":<td> <input type=password name=oldP><br />
             <tr><td>" . $lang['Enter'] . " " . $lang['new'] . " " . $lang['password'] . ":<td> <input type=password name=newP><br />
             <tr><td>" . $lang['Repeat'] . " " . $lang['new'] . " " . $lang['password'] . ":<td> <input type=password name=renewP><br />
-            <tr><td colspan=2 class='text-center'><input type=submit value='" .$lang['Submit'] . "'></table><br>";
+            <tr><td colspan=2 class='text-center'><center><input type=submit value='" .$lang['Submit'] . "'></center></table><br>";
     if ( isset( $_POST[ 'oldP' ] ) && isset( $_POST[ 'newP' ] ) && isset( $_POST[ 'renewP' ] ) ) {
         if ( $_POST[ 'oldP' ] != $adminPassword ) {
             $output .= "<span class='notice'>" . $lang['Incorrect'] . " " . $lang['password'] . "</span>";
@@ -216,9 +219,10 @@ if ( $adminloggedIn ) {
 	       <col span='1' style='width: 60%;'>
 	    </colgroup>
         <tr><th colspan=2>" . $lang['Admin'] . " " . $lang['Options'] . "
-        <tr><td>" . $lang['Enable'] . " " . $lang['New User Registration'] . ":<td><input type=radio name=enableNUR value=1 " . ( $adminOptions[ 'enableNUR' ] == 1 ? "checked" : "" ) . ">" . $lang['Yes'] . "
-            &nbsp;<input type=radio name=enableNUR value=2 " . ( $adminOptions[ 'enableNUR' ] == 2 ? "checked" : "" ) . ">" . $lang['Require Approval'] . "
-            &nbsp;<input type=radio name=enableNUR value=0 " . ( $adminOptions[ 'enableNUR' ] == 0 ? "checked" : "" ) . ">" . $lang['No'] . "
+        <tr><td>" . $lang['Purchase Code'] . ":&nbsp;<sup><a href='http://i.imgur.com/wFF7VMD.gif' target='_new' title='How to find Purchase Code'>?</a></sup><td><input type=text name='purchaseCode' id='purchaseCodeAdminOptions' class='textbox' placeholder='' value='" . ( $hardDemo ? "***" : $adminOptions[ 'purchaseCode' ] ) . "'>
+        <tr><td>" . $lang['Enable'] . " " . $lang['New User Registration'] . ":<td><input type=radio name=enableNUR value=1 " . ( $adminOptions[ 'enableNUR' ] == 1 ? "checked" : "" ) . "> " . $lang['Yes'] . "
+            <br /><input type=radio name=enableNUR value=2 " . ( $adminOptions[ 'enableNUR' ] == 2 ? "checked" : "" ) . "> " . $lang['Require Approval'] . "
+            <br /><input type=radio name=enableNUR value=0 " . ( $adminOptions[ 'enableNUR' ] == 0 ? "checked" : "" ) . "> " . $lang['No'] . "
         <tr><td>" . $lang['Email Verification'] . ":<td><input type=checkbox name=emailVerify " . ( $adminOptions[ 'emailVerify' ] == 0 ? "" : "checked" ) . ">
         <tr><td>" . $lang['Automatic Role Assignments'] . ":<td><input type=checkbox name=enableARA " . ( $adminOptions[ 'enableARA' ] == 0 ? "" : "checked" ) . ">
         <tr><td>";
@@ -248,7 +252,9 @@ if ( $adminloggedIn ) {
 	    </colgroup>
     	<tr><th colspan=2>" . $lang['Email'] . " " . $lang['Options'] . "
     	<tr><td>" . $lang['Admin'] . " " . $lang['Email'] . ":<td><input type=text name='adminEmail' class='textbox' placeholder='' value='" . ( $hardDemo ? "" : $adminOptions[ 'adminEmail' ] ) . "'>
-        <tr><td>" . $lang['Notifications'] . ": " . $lang['New User Registration'] . "<td><input type=checkbox name=notifySignUp " . ( $adminOptions[ 'notifySignUp' ] == 0 ? "" : "checked" ) . ">";
+        <tr><td>" . $lang['Notifications'] . ": " . $lang['New User Registration'] . "<td><input type=checkbox name=notifySignUp " . ( $adminOptions[ 'notifySignUp' ] == 0 ? "" : "checked" ) . ">
+        <tr><td>" . $lang['Email'] . " " . $lang['Server'] . ":<td><input type=radio name=emailServer value='Sarir' " . ( $adminOptions[ 'emailServer' ] == 'Sarir' ? "checked" : "" ) . "> Sarir
+            <br /><input type=radio name=emailServer value='php' " . ( $adminOptions[ 'emailServer' ] == 'php' ? "checked" : "" ) . "> PHP";
     //Posting Options
     $output .= "</table>
         <table class=user>
@@ -327,7 +333,10 @@ if ( $adminloggedIn ) {
                     </table>";
     }
     if ( count( $availablePlugins ) ) {
-        $output .= "<br clear=all><table class=user>
+        $output .= "<br clear=all><table class=user><colgroup>
+	       <col span='1' style='width: 40%;'>
+	       <col span='1' style='width: 60%;'>
+	    </colgroup>
             <tr><th colspan=2>" . $lang['Plugins'];
         foreach( $availablePlugins as $pluginName ) {
             $output .= "<tr><td>" . ucwords( $pluginName ) . "<td><input type=checkbox name='plug_" . $pluginName . "' " . (  $adminOptions[ 'plug_' . $pluginName ] ? "checked" : "" ) . ">";
@@ -362,14 +371,11 @@ if ( $adminloggedIn ) {
             $('#adminToken').easyconfirm({
                 eventType: 'submit',
                 locale: { title: \"" . $lang['Important Note'] . "\", text: \"" . $lang['Admin Token Note'] . "\", button: [\"" . $lang['Cancel'] . "\",\"" . $lang['Proceed'] . "\"]}
-            });
-            $('#changeAppText').easyconfirm({
-                eventType: 'click',
-                locale: { title: \"" . $lang['Important Note'] . "\", text: \"" . $lang['App Change Note'] . "\", button: [\"" . $lang['Cancel'] . "\",\"" . $lang['Proceed'] . "\"]}
-            });
+            });            
             $('#purchaseCodeForm').submit(function(event){
                 event.preventDefault();
                 $('#purchaseCode').trigger('close');
+                $('#purchaseCodeAdminOptions').val($('#purchaseCodeUpdateForm').val());
                 $('#checkUpdate').block({ 
                     message: '<img src=\"img/loading.gif\">', 
                     //timeout: 30000,
@@ -383,7 +389,11 @@ if ( $adminloggedIn ) {
                 };
                 $('#purchaseCodeForm').ajaxSubmit(options);
             });            
-            $(document).ready(function() {        
+            $(document).ready(function() { 
+            	$('#changeAppText').easyconfirm({
+	                eventType: 'click',
+	                locale: { title: \"" . $lang['Important Note'] . "\", text: \"" . $lang['App Change Note'] . "\", button: [\"" . $lang['Cancel'] . "\",\"" . $lang['Proceed'] . "\"]}
+	            });       
                 tz = parseFloat(" . $adminOptions[ 'adminTimeZoneId' ] . ");
                 document.getElementById(\"adminTimeZone\").selectedIndex = tz; 
                 $('#changeAppText').click(function(e) {

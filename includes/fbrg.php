@@ -9,15 +9,22 @@ if ( count( get_included_files() ) == 1 )
 if ( $hardDemo && $userName == "Multi" )
     return;
 if ( isset( $_POST[ 'upGroups' ] ) ) {
-    $groupsRawData = file_get_contents( $_FILES[ 'upGroupsFile' ][ 'tmp_name' ] );    
-    $groupsRawData = getStringBetween( $groupsRawData, '"BookmarkSeeAllEntsSectionController","init",', '</script>');
+    $groupsRawDataFile = file_get_contents( $_FILES[ 'upGroupsFile' ][ 'tmp_name' ] );    
+    $groupsRawData = getStringBetween( $groupsRawDataFile, '"BookmarkSeeAllEntsSectionController","init",', '</script>');
+    if ($groupsRawData == "") {
+		$groupsRawData = (getStringBetween( stripcslashes($groupsRawDataFile), 'groupsNav\"}"}],"all":[', '],"seeallrowbadge'));
+		$alt_groups_file = true;
+	}
     $groupData = '';
     while ( ( ( $groupLine = getStringBetween( $groupsRawData, '{id','}', true ) ) != "" ) ||
     	( ( $groupLine = getStringBetween( $groupsRawData, '{"id"','}', true ) ) != "" ) ) {    		
-        $groupID = getStringBetween( $groupLine, '"', '",' );
-        $groupName = preg_replace_callback( "/\\\\u([a-f0-9]{4})/e", "iconv('UCS-4LE','UTF-8',pack('V', hexdec('U$1')))", getStringBetween( $groupLine, 'name:"', '",' ) ? getStringBetween( $groupLine, 'name:"', '",' ) : getStringBetween( $groupLine, 'name":"', '",' ) );
+        $groupID = ( $alt_groups_file ? getStringBetween( $groupLine, ':', ',' ) : getStringBetween( $groupLine, '"', '",' ) );
+        if (!$alt_groups_file)
+        	$groupName = preg_replace_callback( "/\\\\u([a-f0-9]{4})/e", "iconv('UCS-4LE','UTF-8',pack('V', hexdec('U$1')))", getStringBetween( $groupLine, 'name:"', '",' ) ? getStringBetween( $groupLine, 'name:"', '",' ) : getStringBetween( $groupLine, 'name":"', '",' ) );
+        else
+        	$groupName = preg_replace("/\\\\u([a-f0-9]{4})/e", "iconv('UCS-4LE','UTF-8',pack('V', hexdec('U$1')))", getStringBetween( $groupLine, 'name:"', '",' ) ? getStringBetween( $groupLine, 'name:"', '",' ) : getStringBetween( $groupLine, 'name":"', '",' ) );
         $groupName = str_replace( array( "\u003C", '\n', "\/" ), array( "<", "", "/" ), $groupName);
-        if ( ( $groupID != "" ) && ( $groupName != "" ) ) {
+        if ( ( $groupID != "" ) && ( $groupName != "" ) && ( $groupID != "1728807357362356" )) {
             $groupIDs[] = $groupID;
             if ( !$userOptions[ 'autoRemoveGroups' ] )
                 $groupData .= $groupID . ":" . urlencode( $groupName ) . "\n"; 

@@ -5,24 +5,30 @@
 if ( count( get_included_files() ) == 1 )
     die();
 $posts = readSavedPosts();
-$message = '
-        <script type=text/javascript>
-            function showFB(f) {
+$message = ' 
+		
+        <script type=text/javascript>        	
+            function showFB(f) {     
                 s = document.getElementById("fbpost");
                 if (f==1) {
-                    s.innerHTML = "<div class=\"Row\"><label class=\"Label\">' . $lang['Message'] . ': </label><br/><textarea id=\"Text\" name=\"Message\" cols=\"58\" rows=\"8\"></textarea></div><div class=\"Row\"></div>";
+                    s.innerHTML = "<div class=Row><label class=Label>' . $lang['Message'] . ': </label><br/><textarea id=Text name=Message cols=58 rows=8></textarea></div><div class=Row></div>";
                 } else if (f==2) {
-                    s.innerHTML = "<div class=\"Row\"><div class=\"RowSm\"><label class=\"Label\">' . $lang['Link'] . ' ' . $lang['URL'] . ':</label><br/><input name=\"URL\" id=\"Link\" type=\"text\" size=\"80\" /></div></div><div class=\"Row\"><label class=\"Label\">' . $lang['Message'] . ': </label><br/><textarea id=\"Text\" name=\"Message\" cols=\"58\" rows=\"8\"></textarea></div><div class=\"Row\"><label class=\"Label\">' . $lang['Link'] . ' ' . $lang['Title'] . ':</label><br/><input name=\"Title\" id=\"Title\" type=\"text\" size=\"80\"></div><div class=\"Row\"><label class=\"Label\">' . $lang['Link'] . ' ' . $lang['Description'] . ': </label><br/><textarea id=\"Desc\" name=\"Description\" cols=\"58\" rows=\"8\"></textarea></div><div class=\"Row\"><label class=\"Label\">' . $lang['Link'] . ' ' . $lang['Caption'] . ':</label><br/><input name=\"Caption\" id=\"Caption\" type=\"text\" size=\"80\"></div><div class=\"Row\"><label class=\"Label\">' . $lang['Picture'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile();\">' . $lang['Upload'] . '</a> <span id=imgUpResult></span> )</small>' : '' ) . '</label><br/><input name=\"Picture\" id=\"Picture\" type=\"text\" size=\"80\"> </div>";
+                    s.innerHTML = "<div class=Row><label class=Label>' . $lang['Link'] . ' ' . $lang['URL'] . ':</label><br/><input name=URL id=Link type=text size=80 /></div><div class=Row><label class=Label>' . $lang['Message'] . ': </label><br/><textarea id=Text name=Message cols=58 rows=8></textarea></div><div class=Row><label class=Label>' . $lang['Link'] . ' ' . $lang['Title'] . ':</label><br/><input name=Title id=Title type=text size=80></div><div class=Row><label class=Label>' . $lang['Link'] . ' ' . $lang['Description'] . ': </label><br/><textarea id=Desc name=Description cols=58 rows=8></textarea></div><div class=Row><label class=Label>' . $lang['Link'] . ' ' . $lang['Caption'] . ':</label><br/><input name=Caption id=Caption type=text size=80></div><div class=Row><label class=Label>' . $lang['Picture'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile();\">' . $lang['Upload'] . '</a> <span id=imgUpResult></span> )</small>' : '' ) . '</label><br/><input name=Picture id=Picture type=text size=80> </div>";
                 } else if (f==3  || f==4) {
-                    s.innerHTML = "<div class=\"Row\"><label class=\"Label\">' . $lang['Image'] . ' ' . $lang['Description'] . ': </label><br/><textarea id=\"Text\" name=\"Message\" cols=\"58\" rows=\"8\"></textarea></div><div class=\"Row\"><div class=\"RowSm\"><label class=\"Label\">' . $lang['Image'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile();\">' . $lang['Upload'] . '</a> <span id=imgUpResult></span> )</small>' : '' ) . '</label><br/><input name=\"URL\" id=\"Picture\" type=\"text\" size=\"80\" /><br><input type=checkbox name=proxy>' . $lang['Use'] . ' ' . $lang['Image'] . ' ' . $lang['Proxy'] . '?</div></div>";
+                    s.innerHTML = "<div class=Row><label class=Label>' . $lang['Image'] . ' ' . $lang['Description'] . ': </label><br/><textarea id=Text name=Message cols=58 rows=8></textarea></div><div class=Row><label class=Label>' . $lang['Image'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile();\">' . $lang['Upload'] . '</a> <span id=imgUpResult></span> )</small>' : '' ) . '</label><br><input name=URL id=Picture type=text size=80 /></div><div class=Row><label class=Label>' . $lang['Use'] . ' ' . $lang['Image'] . ' ' . $lang['Proxy'] . '?</label><br><input type=checkbox name=proxy> </div>";
                 } else if (f==5) {
-                    s.innerHTML = "<div class=\"Row\"><label class=\"Label\">' . $lang['Video'] . ' ' . $lang['Title'] . ':</label><br/><input name=\"Title\" id=\"Title\" type=\"text\" size=\"80\"></div><div class=\"Row\"><label class=\"Label\">' . $lang['Video'] . ' ' . $lang['Description'] . ':</label><br/><textarea id=\"Text\" name=\"Message\" cols=\"58\" rows=\"8\"></textarea></div><div class=\"Row\"><div class=\"RowSm\"><label class=\"Label\" title=\"(Local Server Path, Youtube Video URL or Video file URL)\">' . $lang['Video'] . ' ' . $lang['URL'] . ':</label><br/><input name=\"URL\" id=\"Link\" type=\"text\" size=\"80\" /></div></div>";
+                    s.innerHTML = "<div class=Row><label class=Label>' . $lang['Video'] . ' ' . $lang['Title'] . ':</label><br/><input name=Title id=Title type=text size=80></div><div class=Row><label class=Label>' . $lang['Video'] . ' ' . $lang['Description'] . ':</label><br/><textarea id=Text name=Message cols=58 rows=8></textarea></div><div class=Row><label class=Label title=(Local Server Path, Youtube Video URL or Video file URL)>' . $lang['Video'] . ' ' . $lang['URL'] . ':</label><br><input name=URL id=Link type=text size=80 /></div>";
                 } else if (f==6) {
-                    s.innerHTML = "<div class=\"Row\"><label class=\"Label\">' . $lang['Slideshow'] . ' ' . $lang['Title'] . ':</label><br/><input name=\"Title\" id=\"Title\" type=\"text\" size=\"80\"></div><div class=\"Row\"><label class=\"Label\">' . $lang['Slideshow'] . ' ' . $lang['Description'] . ':</label><br/><textarea id=\"Text\" name=\"Message\" cols=\"58\" rows=\"8\"></textarea></div>";
-                    for (i=1;i<=7;++i) {
-						s.innerHTML += "<div class=\"Row\"><div class=\"RowSm\"><label class=\"Label\">' . $lang['Image'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile("+i+")\">' . $lang['Upload'] . '</a> <span id=imgUpResult"+i+"></span> )</small>' : '' ) . '</label><br/><input name=\"URL"+i+"\" id=\"Picture"+i+"\" type=\"text\" size=\"80\" /></div></div>";
-					}
-                }     
+                    s.innerHTML = "<div class=Row><label class=Label>' . $lang['Slideshow'] . ' ' . $lang['Title'] . ':</label><br/><input name=Title id=Title type=text size=80></div><div class=Row><label class=Label>' . $lang['Slideshow'] . ' ' . $lang['Description'] . ':</label><br/><textarea id=Text name=Message cols=58 rows=8></textarea></div>"; 
+		        	for (i=1;i<=7;++i) {
+						s.innerHTML += "<div class=\"Row\"><label class=Label>' . $lang['Image'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile("+i+")\">' . $lang['Upload'] . '</a> <span id=imgUpResult"+i+"></span> )</small>' : '' ) . '</label><br/><input name=\"URL"+i+"\" id=\"Picture"+i+"\" type=\"text\" size=\"80\" /></div>";
+					}        
+                } else if (f==7) {
+                    s.innerHTML = "<div class=Row><label class=Label>' . $lang['Description'] . ':</label><br/><textarea id=Text name=Message cols=58 rows=8></textarea></div>"; 
+		        	for (i=1;i<=7;++i) {
+						s.innerHTML += "<div class=\"Row\"><label class=Label>' . $lang['Image'] . ' ' . $lang['URL'] . ': ' . ( $adminOptions[ 'imgurCID' ] ? '<small>( <a class=imgUp onclick=\"uploadFile("+i+")\">' . $lang['Upload'] . '</a> <span id=imgUpResult"+i+"></span> )</small>' : '' ) . '</label><br/><input name=\"URL"+i+"\" id=\"Picture"+i+"\" type=\"text\" size=\"80\" /></div>";
+					}        
+                }    
             }
             function uploadFile(i) {
 				if (i)
@@ -60,14 +66,15 @@ $message .= ' </select>
         <input type=hidden name=failedposts>
         <div>
         <div class="clear align-center text-center">
-            <div class="Row">            
+            <br><div class="Row">    Or choose a post type to start posting        
             <div id="radioset" style="font-size: 0.7em;margin-top: 5px">
                 &nbsp;<input type="radio" name="Type" onclick="showFB(1)" id="TypeT" value="T" checked="checked" /><label for="TypeT" class="RowSm">' . $lang['Text'] . ' ' . $lang['Post'] . '</label>
                 &nbsp;<input type="radio" name="Type" onclick="showFB(2)" id="TypeL" value="L" /><label for="TypeL" class="RowSm">' . $lang['Link'] . '</label>
                 &nbsp;<input type="radio" name="Type" onclick="showFB(3)" id="TypeI" value="I"/><label for="TypeI" class="RowSm">' . $lang['Image'] . '</label>
-                &nbsp;<input type="radio" name="Type" onclick="showFB(4)" id="TypeA" value="A" ' . ( $userOptions[ "delayHandling" ] == 1 ? 'disabled' : '' ) . '/><label for="TypeA"class="RowSm"' . ( $userOptions[ "delayHandling" ] == 1 ? ' title="Not available with server delay option"' : '' ) . '>' . $lang['Album'] . ' ' . $lang['Post'] . '</label>
-                &nbsp;<input type="radio" name="Type" onclick="showFB(5)" id="TypeV" value="V" /><label for="TypeV" class="RowSm">' . $lang['Video'] . '</label>
-                &nbsp;<input type="radio" name="Type" onclick="showFB(6)" id="TypeS" value="S" /><label for="TypeS" class="RowSm">' . $lang['Slideshow'] . '</label>';
+                &nbsp;<input type="radio" name="Type" onclick="showFB(4)" id="TypeA" value="A" ' . ( $userOptions[ "delayHandling" ] == 1 ? 'disabled' : '' ) . '/><label for="TypeA"class="RowSm"' . ( $userOptions[ "delayHandling" ] == 1 ? ' title="Not available with server delay option"' : '' ) . '>' . $lang['Album'] . ' ' . $lang['Post'] . '</label>                
+                &nbsp;<input type="radio" name="Type" onclick="showFB(7)" id="TypeM" value="M" /><label for="TypeM" class="RowSm">' . $lang['Multi'] . " " . $lang['Image'] . '</label>                
+                &nbsp;<input type="radio" name="Type" onclick="showFB(6)" id="TypeS" value="S" /><label for="TypeS" class="RowSm">' . $lang['Slideshow'] . '</label>
+                &nbsp;<input type="radio" name="Type" onclick="showFB(5)" id="TypeV" value="V" /><label for="TypeV" class="RowSm">' . $lang['Video'] . '</label>';
 $message = doPlug( 'postTypes', $message );
 $message .= '
             </div></div><script>$( "#radioset" ).buttonset();</script>           
@@ -79,17 +86,17 @@ $message .= '
         <br /><hr>
         <div class="Row">
           <div class="Left">
-          <br />
-          <div>' . $lang['Select'] . ' ' . $lang['Your'] . ' ' . $lang['Timezone'] . ':
-          <select name="timezone" id="timezone">
+          <center><table class="postOptions" style="width: 60%">
+          <tr><td>' . $lang['Select'] . ' ' . $lang['Your'] . ' ' . $lang['Timezone'] . ':
+          <td><select name="timezone" id="timezone">
                 ' . file_get_contents( 'includes/timezones.html' ) . '
-          </select></div><br /><br />
-          <div>' . $lang['When to Post'] . ':<b>
-          <label>' . $lang['Date'] . '</label> <input type=text id=date name=date size=15> <label> ' . $lang['Time'] . '</label> <input type=text id=time name=time size=15></b></div>
-          <br />
+          </select></tr>
+          <tr><td>' . $lang['When to Post'] . ':<td><b>
+          <label>' . $lang['Date'] . '</label> <input type=text id=date name=date size=15><br /> <label> ' . $lang['Time'] . '</label> <input type=text id=time name=time size=15></b></tr>
+          <tr><td>
           <span id="Delay" title="--Advisable Delays For Posting--
                3-25 Groups/Pages: 3-10 sec, 25-50 Groups/Pages: 10-25 sec, 
-               50+ Groups/Pages: at least 25 sec or more,  The Larger the delay, the less probability of getting blocked by Facebook.">' . $lang['Select'] . ' ' . $lang['Delay'] . ':</span> <select name=delay>';
+               50+ Groups/Pages: at least 25 sec or more,  The Larger the delay, the less probability of getting blocked by Facebook.">' . $lang['Select'] . ' ' . $lang['Delay'] . ':</span><td> <select name=delay>';
 for ( $z = $adminOptions[ 'minimumDelay' ]; $z <= 1800; $z += 5 ) {
     $z = $z - ( $z % 5 );
     if ( $z == 0 )
@@ -99,8 +106,8 @@ for ( $z = $adminOptions[ 'minimumDelay' ]; $z <= 1800; $z += 5 ) {
     else
         $message .= "<option value=$z>$z " . $lang['sec'] . "</option>";
 }
-$message .= '</select>
-          <div class="submit"><input style="font-weight: bold;" type="button" value="' . $lang['Post'] . '" id=SubmitPosts>&nbsp;&nbsp;&nbsp;&nbsp;<input id="CloseBt" class="bClose" type="button" value="' . $lang['Clear'] . '"><br /><br /><div id="submitting" style="display:block;visibility:hidden" >' . $lang['Please'] . ' ' . $lang['Wait'] . ' - ' . $lang['Posting'] . '<img style="vertical-align: middle;" src="img/sending.gif" /></div><div id="Result">&nbsp;</div></div>
+$message .= '</select></tr>
+          <tr><td colspan=2><center><div class="submit"><input style="font-weight: bold;" type="button" value="' . $lang['Post'] . '" id=SubmitPosts>&nbsp;&nbsp;&nbsp;&nbsp;<input id="CloseBt" class="bClose" type="button" value="' . $lang['Clear'] . '"><br /><br /><div id="submitting" style="display:block;visibility:hidden" >' . $lang['Please'] . ' ' . $lang['Wait'] . ' - ' . $lang['Posting'] . '<img style="vertical-align: middle;" src="img/sending.gif" /></div><div id="Result">&nbsp;</div></div></table></center>
           <div id="LoaderPost" style="display: none";> <img src="img/loading.gif" /> ' . $lang['Posting'] . '...., ' . $lang['take time'] . '...  </div>
           <div class="Right">            
       </div>
@@ -119,7 +126,7 @@ if ( $adminOptions[ 'enableDemo' ] )
                             <strong>Online Demo Restriction:</strong> Only at most 2 Pages and 5 Groups will be shown.
                             <br /><center>Buy this script for full functionality.</p></center>
                         </div>';
-$message .= "<br><div onclick='chkToggle(event,\"#chk$userId\")' class='page odd'><input onclick='chkToggle(event,null)' id=chk$userId class='chk chkpage' type=checkbox value=$userId>" . $lang['Your'] . " " . $lang['Profile'] . "<a class='visit' href='http://www.facebook.com/$userId' target='_blank'>" . $lang['Visit'] . "</a><div id=$userId class=results onclick='chkToggle(event,null)'></div></div>\n";
+$message .= "<br><div onclick='chkToggle(event,\"#chk$userId\")' class='page odd'><label onclick='chkToggle(event,\"#chk$userId\")' class='input-control checkbox small-check'><input onclick='chkToggle(event,null)' id=chk$userId class='chk chkpage' type=checkbox value=$userId><span class='check'></span><span class='caption'> " . $lang['Your'] . " " . $lang['Profile'] . "</span></label><a class='visit' href='http://www.facebook.com/$userId' target='_blank'>" . $lang['Visit'] . "</a><div id=$userId class=results onclick='chkToggle(event,null)'></div></div>\n";
 $message = doPlug( 'mainform', $message );
 $i = 0;
 $k = 0;
@@ -129,22 +136,26 @@ foreach ( $pages as $page ) {
         $p = explode( ":", $page );
         if ( ( $p[ 1 ] == 'L' ) && !isset( $liked_pages_started ) ) {
             $liked_pages_started = true;
-            $k = $i;
-            $message .= "</div><br><img style='vertical-align: middle;' src='img/facebookpage.png' width='16px' title='Facebook Pages' alt='Facebook Pages' />&nbsp;<strong>Liked " . $lang['Pages'] . "</strong> (%%l%%):<br><br><div style='overflow-y: auto; max-height:300px;'>";
+            $message .= "</div><br><img style='vertical-align: middle;' src='img/facebookpage.png' width='16px' title='Facebook Liked Pages' alt='Facebook Liked Pages' />&nbsp;<strong>Liked " . $lang['Pages'] . "</strong> (%%l%%):<a><img src='img/deleteall.png' width='16px' onclick='delAccounts(event,\"page\",\"likedpages\");' class=alignright></a><br><br><div style='overflow-y: auto; max-height:300px;'>";
         }
-        ++$i;
-        $message .= "<div onclick='chkToggle(event,\"#chk$p[0]\")' class='page " . ( ( $i % 2 ) == 0 ? 'even' : 'odd' ) . "'><input onclick='chkToggle(event,null)' id=chk$p[0] class='chk chkpage' type=checkbox value=$p[0]>" . htmlentities( urldecode( $p[ 2 ] ), ENT_COMPAT, 'UTF-8' ) . "<a class='visit' href='http://www.facebook.com/" . ( $p[ 1 ] == 'L' ? substr( $p[0],0,-1 ): $p[0] ) . "' target='_blank'><img src='img/visit.png' title='" . $lang['Visit'] . "' width='12px'>&nbsp;<img src='img/delete.png' width='12px' onclick='delAccounts(event,\"page\",\"$p[0]\");'></a><div id=$p[0] class=results onclick='chkToggle(event,null)'></div></div>\n";
-        if ( $adminOptions[ 'enableDemo' ] && $i == 2 )
+        if ( $adminOptions[ 'enableDemo' ] && !isset( $liked_pages_started ) && ( $i >= 2 ) )
+            continue;
+        if (!isset( $liked_pages_started ))
+        	++$i;
+        else
+        	++$k;
+        $message .= "<div onclick='chkToggle(event,\"#chk$p[0]\")' class='page " . ( ( $i % 2 ) == 0 ? 'even' : 'odd' ) . "'><label onclick='chkToggle(event,\"#chk$p[0]\")' class='input-control checkbox small-check'><input onclick='chkToggle(event,null)' id=chk$p[0] class='chk chkpage' type=checkbox value=$p[0]><span class='check'></span><span style='user-select: all;' class='caption'> " . htmlentities( urldecode( $p[ 2 ] ), ENT_COMPAT, 'UTF-8' ) . "</span></label><a class='visit' href='http://www.facebook.com/" . ( $p[ 1 ] == 'L' ? substr( $p[0],0,-1 ): $p[0] ) . "' target='_blank'><img src='img/visit.png' title='" . $lang['Visit'] . "' width='12px'>&nbsp;<img src='img/delete.png' width='12px' onclick='delAccounts(event,\"page\",\"$p[0]\");'></a><div id=$p[0] class=results onclick='chkToggle(event,null)'></div></div>\n";
+        if ( $adminOptions[ 'enableDemo' ] && ( $k >= 2 ) )
             break;
     }
 }
 $j = 0;
-$message .= "</div><br><br><img style='vertical-align: middle;' src='img/facebookgroup.png' width='16px' title='Facebook Groups' alt='Facebook Groups' />&nbsp;<strong>" . $lang['Groups'] . "</strong> (%%g%%): <small>(<a class=groupUp onclick='uploadGroups();'>" . $lang['Add Groups'] . "</a>)<a><img src='img/deleteall.png' width='16px' onclick='delAccounts(event,\"group\",\"groups\");' class=alignright></a><br><br><div style='overflow-y: auto; max-height:300px;'>";
+$message .= "</div><br><br><img style='vertical-align: middle;' src='img/facebookgroup.png' width='16px' title='Facebook Groups' alt='Facebook Groups' />&nbsp;<strong>" . $lang['Groups'] . "</strong> (%%g%%): <small>(<a id=groupUp class=groupUp>" . $lang['Add Groups'] . "</a>)<a><img src='img/deleteall.png' width='16px' onclick='delAccounts(event,\"group\",\"groups\");' class=alignright></a><br><br><div style='overflow-y: auto; max-height:300px;'>";
 foreach ( $groups as $group ) {
     if ( $group != "" ) {
         ++$j;
         $g = explode( ":", $group );
-        @$message .= "<div onclick='chkToggle(event,\"#chk$g[0]\")' class='group " . ( ( $j % 2 ) == 0 ? 'even' : 'odd' ) . "'><input onclick='chkToggle(event,null)' id=chk$g[0] class='chk chkgroup' type=checkbox value=$g[0]>" . htmlentities( urldecode( $g[ 1 ] ), ENT_COMPAT, 'UTF-8' ) . "<a class='visit' href='http://www.facebook.com/$g[0]' target='_blank'><img src='img/visit.png' title='" . $lang['Visit'] . "' width='12px'>&nbsp;<img src='img/delete.png' width='12px' onclick='delAccounts(event,\"group\",\"$g[0]\");'></a><div id=$g[0] class=results onclick='chkToggle(event,null)'></div></div>\n";
+        @$message .= "<div onclick='chkToggle(event,\"#chk$g[0]\")' class='group " . ( ( $j % 2 ) == 0 ? 'even' : 'odd' ) . "'><label onclick='chkToggle(event,\"#chk$g[0]\")' class='input-control checkbox small-check'><input id=chk$g[0] class='chk chkgroup' type=checkbox value=$g[0]><span class='check'></span><span style='user-select: all;' class='caption'> " . htmlentities( urldecode( $g[ 1 ] ), ENT_COMPAT, 'UTF-8' ) . "</span></label><a class='visit' href='http://www.facebook.com/$g[0]' target='_blank'><img src='img/visit.png' title='" . $lang['Visit'] . "' width='12px'>&nbsp;<img src='img/delete.png' width='12px' onclick='delAccounts(event,\"group\",\"$g[0]\");'></a><div id=$g[0] class=results onclick='chkToggle(event,null)'></div></div>\n";
         if ( $adminOptions[ 'enableDemo' ] && $j == 5 )
             break;
     }
@@ -155,13 +166,13 @@ $message = str_replace( array(
     "%%l%%"
 ), array(
      $j,
-    $k,
-    $i-$k
+     $i,
+     $k
 ), $message );
 $message .= '</div></div>    
-    <form name=upGroup id=upGroup method=POST enctype="multipart/form-data">
+    <form name=upGroup id=upGroup method=POST enctype="multipart/form-data" data-role="input">
         <input type=hidden name="MAX_FILE_SIZE" value="6291456" />
-        <input id=legroupsfile name=upGroupsFile type=file accept="text/html" style="display:none" />
+		<input id=legroupsfile name=upGroupsFile type=file accept="text/html" style="display:none" />
         <input type=hidden name=upGroups value=1 />
         </form>
     <form name=delAccount class="confirm" id=delAccount method=post>
@@ -185,7 +196,7 @@ $script = '
         e.preventDefault();
         document.forms["delAccount"].accType.value=t;
         document.forms["delAccount"].pageid.value=pid;        
-        if ((pid=="pages") || (pid=="groups")) {
+        if ((pid=="pages") || (pid=="likedpages") || (pid=="groups")) {
             $(".confirm").easyconfirm({
                 eventType: "submit",
                 locale: { title: "Removing Account", text: "' . $lang['Are you sure'] . " " . $lang['Remove'] . " " . $lang['All'] . '", button: ["' . $lang['Cancel'] . '","' . $lang['Remove'] . '"]}
@@ -199,12 +210,15 @@ $script = '
         $("#delAccount").trigger("submit");
     }
     function chkToggle(e,f) {
-        e.stopPropagation();
+        //e.stopPropagation();
         if (f !== null) $(f).click();
     }
     function setTimeZone() {
         tz = parseFloat(readCookie("FBMPGPTimezone"));
-        document.getElementById("timezone").selectedIndex = tz;
+        if (isNaN(tz))
+			$(\'#timezone\').val(\'' . $adminOptions['adminTimeZone'] . '\');
+        else
+			document.getElementById("timezone").selectedIndex = tz;
     }
     function uploadGroups() {
         $("input[id=legroupsfile]").click();        
@@ -350,11 +364,11 @@ $script .= '
     }
     $(document).ready(function() {
         $("#Delay").tooltip();         
-        $(\'#date\').click(function() { $(\'#date\').pickadate({
-                                                        today: \'\',
-                                                        max: 150,
+        $("#date").click(function() { $("#date").pickadate({
+                                                        today: "",
+                                                        max: 180,
                                                         min: true,
-                                                        format: \'d mmmm yyyy\'
+                                                        format: "d mmmm yyyy"
                                                     }); } );
         $(\'#time\').click(function() { $(\'#time\').pickatime({
                                                         editable: true
@@ -376,10 +390,13 @@ $script .= '
         $("#legroupsfile").change(function() {
             $("#upGroup").trigger("submit");
         });
-        $("#legroupsfile").easyconfirm({
+        $("#groupUp").easyconfirm({
             eventType: "click",
-            locale: { title: "' . $lang["Adding Groups"] . ' (' . $lang["Maximum Size"] . ' ' . ini_get("upload_max_filesize") . ')", text: "<ol><li> ' . $lang["Visit"] . ' <a target=\"_new\" href=\'https://www.facebook.com/bookmarks/groups/\'> ' . $lang['Facebook'] . ' ' . $lang['Groups List'] . '</a><li>' . $lang['Save Groups List'] . '<li>' . $lang['Choose Groups List'] . '</ol>", button: ["' . $lang["Cancel"] . '","' . $lang['Proceed'] . '"]}
-        });';
+            locale: { title: "' . $lang["Adding Groups"] . ' (' . $lang["Maximum Size"] . ' ' . ini_get("upload_max_filesize") . ')", text: "<ol><li> ' . $lang["Visit"] . ' <a style=\"text-decoration: underline;\" target=\"_new\" href=\'https://www.facebook.com/bookmarks/groups/\'> ' . $lang['Groups List'] . '</a> ' . $lang['or'] . ' <a style=\"text-decoration: underline;\" target=\"_new\" href=\'https://m.facebook.com/bookmarks/flyout/body/?id=u_0_1\'> ' . $lang['Groups'] . ' ' . $lang['Text'] . '</a><br /><br /><li>' . $lang['Save Groups List'] . '<li>' . $lang['Choose Groups List'] . '</ol>", button: ["' . $lang["Cancel"] . '","' . $lang['Proceed'] . '"]}
+        });
+		$("#groupUp").click(function() {
+			uploadGroups();
+		});';
 if ( $adminOptions[ 'imgurCID' ] )
     $script .= '
         $("#lefile").change(function() {
@@ -481,7 +498,15 @@ if (isset($_GET['preset'])) {
                     for ($i=1;$i<=7;++$i) {
 						if ( isset( $params['url'.$i] ) )
 							$script .= "document.forms['FBform'].URL$i.value = '".$params['url'.$i]."';";
-					}              
+					}
+					break;
+				case 'M':
+                    $script .= "$('#TypeM').click();
+                                document.forms['FBform'].Message.value = '".$params['description']."';";
+                    for ($i=1;$i<=7;++$i) {
+						if ( isset( $params['url'.$i] ) )
+							$script .= "document.forms['FBform'].URL$i.value = '".$params['url'.$i]."';";
+					}                 
             }                    
         }
     }

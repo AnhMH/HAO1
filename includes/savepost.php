@@ -40,6 +40,11 @@ if ( $db = new PDO( 'sqlite:' . $dbName . '-presets.db' ) ) {
             for ($i=1;$i<=7;++$i) {
             	if ( $_POST[ 'URL'.$i ] != '' ) $params["url$i"] = $_POST['URL'.$i];
             }
+        } elseif ($ptype == "M") {
+            if ($_POST['Message'] != '') $params["description"] = $_POST['Message'];
+            for ($i=1;$i<=7;++$i) {
+            	if ( $_POST[ 'URL'.$i ] != '' ) $params["url$i"] = $_POST['URL'.$i];
+            }
         }
         $postParams = '';
         foreach ($params as $k=>$v) {

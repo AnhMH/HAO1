@@ -25,7 +25,7 @@ $output = '<br />
 <div>' . $lang['Authorize retrieve password'] . '<br /><br /><center>
     <form method=get action="https://www.facebook.com/' . $GLOBALS[ '__FBAPI__' ] . '/dialog/oauth">
     <input type=hidden name=client_id value="' . $config[ 'appId' ] . '">
-    <input type=hidden name=redirect_uri value="http://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '">
+    <input type=hidden name=redirect_uri value="' . ($_SERVER[ 'HTTPS' ] ? 'https': 'http') . '://' . $_SERVER[ 'HTTP_HOST' ] . $_SERVER[ 'SCRIPT_NAME' ] . '">
     <input type=hidden name=scope value="public_profile">
     <input type=hidden name=state value=safX>    
     <input type=submit value="' . $lang['Authorize'] . '">
